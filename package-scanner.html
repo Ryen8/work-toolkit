@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>倉庫裝箱掃描與單號比對系統</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS (xlsx) 用於讀取與匯出 Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- Html5-qrcode 用於相機條碼掃描 -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .scanner-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; }
+        #reader { width: 100% !important; border: none !important; border-radius: 0.75rem; overflow: hidden; }
+        #reader__dashboard_section_csr button {
+            background-color: #2563eb !important;
+            color: white !important;
+            padding: 6px 14px !important;
+            border-radius: 0.5rem !important;
+            border: none !important;
+            font-weight: 600;
+        }
+        /* 列印 / 匯出 PDF 專用樣式 (還原 PACKING & DISPATCH REPORT 格式) */
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                background: white !important;
+            }
+            .no-print { display: none !important; }
+            .page-break-avoid { break-inside: avoid; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-24">
+
+
+    <!-- 頂部導覽列 -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30 no-print">
+        <div class="max-w-2xl mx-auto px-4 py-3.5 flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <i class="fa-solid fa-boxes-packing text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold leading-tight">裝箱掃描與單號比對系統</h1>
+                    <p class="text-[11px] text-slate-400">Warehouse Box Scanner & Matcher</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <span id="header-stats" class="bg-slate-800 border border-slate-700 text-xs px-3 py-1.5 rounded-full font-medium text-blue-300">
+                    0 箱 / 0 件
+                </span>
+            </div>
+        </div>
+    </header>
+
+
+    <main class="max-w-2xl mx-auto p-4 space-y-4 no-print">
+
+
+        <!-- 步驟 1：上傳 Excel 對照表 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+            <div class="flex justify-between items-center mb-2.5">
+                <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">1</span>
+                    上傳單號對照表 (Excel)
+                </h2>
+                <span id="excel-status" class="text-xs font-medium text-slate-400">尚未載入對照表</span>
+            </div>
+
+
+            <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-blue-50/40 transition">
+                <div class="flex flex-col items-center justify-center pt-2 pb-2 text-center px-4">
+                    <i class="fa-solid fa-file-excel text-emerald-600 text-2xl mb-1"></i>
+                    <p class="text-xs font-medium text-slate-700" id="file-name-display">點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">自動識別「指定运单号」與「系统履约单号」欄位</p>
+                </div>
+                <input id="excel-upload" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelUpload(event)" />
+            </label>
+        </section>
+
+
+        <!-- 步驟 2：設定當前箱號與重量 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">2</span>
+                    當前裝箱設定 & 掃描
+                </h2>
+                <button onclick="startNewBox()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-box-open"></i> 封箱並開下一箱
+                </button>
+            </div>
+
+
+            <!-- 箱名與重量設定列 -->
+            <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">當前箱號名稱 (可自訂)</label>
+                    <input type="text" id="current-box-name" value="BOX 001" oninput="updateCurrentBoxMeta()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">本箱重量 (kg)</label>
+                    <div class="relative">
+                        <input type="number" id="current-box-weight" step="0.01" min="0" placeholder="0.00" oninput="updateCurrentBoxMeta()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 pr-9 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-medium">kg</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- 相機掃描區塊 -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-medium text-slate-600">條碼掃描輸入 (支援相機或藍牙掃描槍)</span>
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                        <input type="checkbox" id="continuous-scan" checked class="w-3.5 h-3.5 text-blue-600 rounded">
+                        <span class="text-xs text-slate-600">連續掃描不中斷</span>
+                    </label>
+                </div>
+
+
+                <div id="scanner-wrapper" class="hidden mb-3">
+                    <div class="scanner-container bg-slate-900 rounded-xl overflow-hidden">
+                        <div id="reader"></div>
+                    </div>
+                    <button onclick="stopScanner()" class="mt-2 w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-stop"></i> 關閉相機
+                    </button>
+                </div>
+
+
+                <div class="flex gap-2">
+                    <button id="start-scan-btn" onclick="startScanner()" class="bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2 shrink-0">
+                        <i class="fa-solid fa-camera"></i> 開啟相機
+                    </button>
+                    <input type="text" id="barcode-input" placeholder="掃描或輸入指定運單號 (按 Enter 加入)" onkeydown="if(event.key==='Enter') processBarcode(this.value)" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+                    <button onclick="processBarcode(document.getElementById('barcode-input').value)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition shrink-0">
+                        加入
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- 即時比對狀態提示 -->
+            <div id="scan-feedback" class="hidden px-3.5 py-2.5 rounded-xl text-xs font-medium flex items-center justify-between"></div>
+        </section>
+
+
+        <!-- 步驟 3：分箱明細預覽與管理 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">3</span>
+                    已掃描分箱清單
+                </h2>
+                <button onclick="clearAllData()" class="text-xs text-red-500 hover:text-red-700 font-medium">
+                    <i class="fa-solid fa-trash-can"></i> 清空全部
+                </button>
+            </div>
+
+
+            <div id="boxes-container" class="space-y-4">
+                <!-- 動態產生各箱卡片 -->
+            </div>
+        </section>
+
+
+        <!-- 步驟 4：報表標題設定與匯出 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+            <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">4</span>
+                統整匯出報表
+            </h2>
+
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-500 mb-1">報表抬頭 / 客戶名稱</label>
+                    <input type="text" id="report-brand" value="Liwu's" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-medium">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-500 mb-1">副標題</label>
+                    <input type="text" id="report-subtitle" value="Warehouse packed list" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-medium">
+                </div>
+            </div>
+
+
+            <div class="grid grid-cols-2 gap-3 pt-1">
+                <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white py-3 rounded-xl text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i> 匯出 Excel (.xlsx)
+                </button>
+                <button onclick="exportToPDF()" class="bg-slate-800 hover:bg-slate-900 active:scale-[0.99] text-white py-3 rounded-xl text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-pdf text-red-400"></i> 生成 PDF 報表
+                </button>
+            </div>
+        </section>
+
+
+    </main>
+
+
+    <!-- 隱藏的 PDF 列印專屬版面 (完全比照 packed-list-2026-11-18-1.pdf 排版) -->
+    <div id="print-area" class="hidden print:block p-8 font-sans text-slate-900 bg-white">
+        <!-- 內容由 JS 動態渲染 -->
+    </div>
+
+
+    <script>
+        // 儲存 Excel 對照字典: { '指定运单号': '系统履约单号' }
+        let lookupMap = {};
+        let lookupCount = 0;
+
+
+        // 分箱資料結構: [{ id, name, weight, items: [{ tracking, fulfillment, matched, time }] }]
+        let boxes = JSON.parse(localStorage.getItem('warehouse_boxes') || '[]');
+        let activeBoxIndex = 0;
+
+
+        let html5QrCode = null;
+        let isScanning = false;
+        let lastScannedCode = '';
+        let lastScannedTime = 0;
+
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            if (boxes.length === 0) {
+                boxes.push({ id: Date.now(), name: 'BOX 001', weight: '', items: [] });
+            }
+            activeBoxIndex = boxes.length - 1;
+            syncInputsWithActiveBox();
+            renderBoxes();
+        });
+
+
+        // 儲存到本地
+        function saveState() {
+            localStorage.setItem('warehouse_boxes', JSON.stringify(boxes));
+            updateHeaderStats();
+        }
+
+
+        function updateHeaderStats() {
+            const totalBoxes = boxes.length;
+            const totalParcels = boxes.reduce((sum, b) => sum + b.items.length, 0);
+            document.getElementById('header-stats').innerText = `${totalBoxes} 箱 / ${totalParcels} 件`;
+        }
+
+
+        // 1. 讀取上傳的 Excel 對照表
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+
+            document.getElementById('file-name-display').innerText = file.name;
+            const reader = new FileReader();
+
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+
+                    lookupMap = {};
+                    lookupCount = 0;
+
+
+                    rows.forEach(row => {
+                        // 支援繁簡體與常見欄位命名
+                        const keys = Object.keys(row);
+                        let trackingKey = keys.find(k => k.includes('指定运单号') || k.includes('指定運單號') || k.includes('运单号') || k.includes('運單號'));
+                        let fulfillmentKey = keys.find(k => k.includes('系统履约单号') || k.includes('系統履約單號') || k.includes('履约单号') || k.includes('履約單號'));
+
+
+                        // 若無明確表頭則預設第一欄為履約單號、第二欄為指定運單號 (對應 file-LP.xlsx 結構)
+                        if (!fulfillmentKey && keys.length >= 1) fulfillmentKey = keys[0];
+                        if (!trackingKey && keys.length >= 2) trackingKey = keys[1];
+
+
+                        const trackingVal = String(row[trackingKey] || '').trim();
+                        const fulfillmentVal = String(row[fulfillmentKey] || '').trim();
+
+
+                        if (trackingVal) {
+                            lookupMap[trackingVal.toUpperCase()] = fulfillmentVal;
+                            lookupCount++;
+                        }
+                    });
+
+
+                    // 重新比對已存在的掃描項目
+                    boxes.forEach(box => {
+                        box.items.forEach(item => {
+                            const found = lookupMap[item.tracking.toUpperCase()];
+                            if (found !== undefined) {
+                                item.fulfillment = found;
+                                item.matched = true;
+                            }
+                        });
+                    });
+
+
+                    saveState();
+                    renderBoxes();
+
+
+                    const statusEl = document.getElementById('excel-status');
+                    statusEl.innerText = `已載入 ${lookupCount} 筆對照資料`;
+                    statusEl.className = 'text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full';
+                } catch (err) {
+                    alert('讀取 Excel 失敗，請確認檔案格式是否正確！');
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+
+        // 2. 箱號與重量同步
+        function syncInputsWithActiveBox() {
+            const currentBox = boxes[activeBoxIndex];
+            if (!currentBox) return;
+            document.getElementById('current-box-name').value = currentBox.name;
+            document.getElementById('current-box-weight').value = currentBox.weight;
+        }
+
+
+        function updateCurrentBoxMeta() {
+            const currentBox = boxes[activeBoxIndex];
+            if (!currentBox) return;
+            currentBox.name = document.getElementById('current-box-name').value.trim() || `BOX ${String(activeBoxIndex + 1).padStart(3, '0')}`;
+            currentBox.weight = document.getElementById('current-box-weight').value;
+            saveState();
+            renderBoxes();
+        }
+
+
+        function startNewBox() {
+            const nextNum = boxes.length + 1;
+            const defaultName = `BOX ${String(nextNum).padStart(3, '0')}`;
+            boxes.push({
+                id: Date.now(),
+                name: defaultName,
+                weight: '',
+                items: []
+            });
+            activeBoxIndex = boxes.length - 1;
+            syncInputsWithActiveBox();
+            saveState();
+            renderBoxes();
+            showFeedback(`已開啟新箱子：${defaultName}`, 'info');
+            document.getElementById('barcode-input').focus();
+        }
+
+
+        function selectActiveBox(index) {
+            activeBoxIndex = index;
+            syncInputsWithActiveBox();
+            renderBoxes();
+        }
+
+
+        // 3. 條碼掃描與比對核心邏輯
+        function processBarcode(rawCode) {
+            const code = String(rawCode || '').trim();
+            if (!code) return;
+
+
+            const inputEl = document.getElementById('barcode-input');
+            inputEl.value = '';
+
+
+            // 檢查是否重複掃描於任何箱子中
+            let duplicateBoxName = null;
+            for (const b of boxes) {
+                if (b.items.some(i => i.tracking.toUpperCase() === code.toUpperCase())) {
+                    duplicateBoxName = b.name;
+                    break;
+                }
+            }
+
+
+            if (duplicateBoxName) {
+                playBeep(false);
+                showFeedback(`⚠️ 重複單號：${code} 已經在「${duplicateBoxName}」中！`, 'warning');
+                return;
+            }
+
+
+            // 與 Excel 對照表比對
+            const upperCode = code.toUpperCase();
+            const hasLookupData = lookupCount > 0;
+            const matchedFulfillment = lookupMap[upperCode];
+            const isMatched = matchedFulfillment !== undefined && matchedFulfillment !== '';
+
+
+            const currentBox = boxes[activeBoxIndex];
+            currentBox.items.push({
+                tracking: code,
+                fulfillment: isMatched ? matchedFulfillment : (hasLookupData ? '查無對應單號' : '未上傳對照表'),
+                matched: isMatched,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+            });
+
+
+            saveState();
+            renderBoxes();
+
+
+            if (isMatched) {
+                playBeep(true);
+                showFeedback(`✅ 成功加入 [${currentBox.name}]：${code} → ${matchedFulfillment}`, 'success');
+            } else if (hasLookupData) {
+                playBeep(false);
+                showFeedback(`⚠️ 已加入 [${currentBox.name}]，但 Excel 中找不到「${code}」的對應履約單號！`, 'warning');
+            } else {
+                playBeep(true);
+                showFeedback(`📦 已加入 [${currentBox.name}]：${code}（尚未上傳對照表）`, 'info');
+            }
+        }
+
+
+        function showFeedback(msg, type) {
+            const el = document.getElementById('scan-feedback');
+            el.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-800', 'border-emerald-200', 'bg-amber-50', 'text-amber-800', 'border-amber-200', 'bg-blue-50', 'text-blue-800', 'border-blue-200');
+            el.classList.add('border');
+
+
+            if (type === 'success') {
+                el.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-200');
+            } else if (type === 'warning') {
+                el.classList.add('bg-amber-50', 'text-amber-800', 'border-amber-200');
+            } else {
+                el.classList.add('bg-blue-50', 'text-blue-800', 'border-blue-200');
+            }
+            el.innerHTML = `<span>${msg}</span>`;
+        }
+
+
+        // 簡易提示音效與震動
+        function playBeep(success) {
+            if (navigator.vibrate) navigator.vibrate(success ? 80 : [100, 50, 100]);
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = success ? 880 : 320;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.start();
+                osc.stop(ctx.currentTime + (success ? 0.1 : 0.25));
+            } catch (e) {}
+        }
+
+
+        // 相機掃描控制
+        function startScanner() {
+            document.getElementById('scanner-wrapper').classList.remove('hidden');
+            document.getElementById('start-scan-btn').classList.add('hidden');
+
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 260, height: 140 } },
+                (decodedText) => {
+                    const now = Date.now();
+                    // 防止連續 1.5 秒內重複觸發同一個條碼
+                    if (decodedText === lastScannedCode && now - lastScannedTime < 1500) return;
+                    lastScannedCode = decodedText;
+                    lastScannedTime = now;
+
+
+                    processBarcode(decodedText);
+
+
+                    if (!document.getElementById('continuous-scan').checked) {
+                        stopScanner();
+                    }
+                },
+                () => {}
+            ).catch(err => {
+                alert("無法開啟相機，請確認已允許瀏覽器相機權限並使用 HTTPS 網址。");
+                stopScanner();
+            });
+            isScanning = true;
+        }
+
+
+        function stopScanner() {
+            if (html5QrCode && isScanning) {
+                html5QrCode.stop().then(() => {
+                    isScanning = false;
+                    document.getElementById('scanner-wrapper').classList.add('hidden');
+                    document.getElementById('start-scan-btn').classList.remove('hidden');
+                }).catch(() => {});
+            } else {
+                document.getElementById('scanner-wrapper').classList.add('hidden');
+                document.getElementById('start-scan-btn').classList.remove('hidden');
+            }
+        }
+
+
+        // 4. 渲染分箱列表
+        function renderBoxes() {
+            const container = document.getElementById('boxes-container');
+            updateHeaderStats();
+
+
+            if (boxes.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">尚無箱子資料</div>`;
+                return;
+            }
+
+
+            let html = '';
+            boxes.forEach((box, bIdx) => {
+                const isActive = bIdx === activeBoxIndex;
+                const weightDisplay = box.weight ? `${parseFloat(box.weight).toFixed(2)} kg` : '未填重量';
+
+
+                html += `
+                <div class="border ${isActive ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200'} rounded-xl overflow-hidden bg-white transition">
+                    <!-- 箱頭列 -->
+                    <div onclick="selectActiveBox(${bIdx})" class="px-3.5 py-2.5 ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-800'} flex justify-between items-center cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-sm tracking-wide">${escapeHtml(box.name)}</span>
+                            <span class="text-[11px] px-2 py-0.5 rounded-full ${isActive ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-600'}">
+                                ${box.items.length} 件
+                            </span>
+                            ${isActive ? '<span class="text-[10px] bg-white text-blue-700 px-1.5 py-0.5 rounded font-bold">掃描中</span>' : ''}
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold ${isActive ? 'text-blue-100' : 'text-slate-600'}">${weightDisplay}</span>
+                            ${boxes.length > 1 ? `
+                            <button onclick="event.stopPropagation(); deleteBox(${bIdx})" class="${isActive ? 'text-blue-200 hover:text-white' : 'text-slate-400 hover:text-red-500'} text-xs p-1" title="刪除此箱">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>` : ''}
+                        </div>
+                    </div>
+
+
+                    <!-- 箱內明細表格 (雙列對照：指定運單號 | 系統履約單號) -->
+                    <div class="divide-y divide-slate-100">
+                        ${box.items.length === 0 ? `
+                            <div class="py-4 text-center text-xs text-slate-400">此箱尚無包裹，請掃描條碼加入</div>
+                        ` : `
+                            <div class="grid grid-cols-12 bg-slate-50 px-3 py-1.5 text-[11px] font-bold text-slate-500 border-b border-slate-200">
+                                <div class="col-span-1">#</div>
+                                <div class="col-span-5">指定運單號 (MAIL NO.)</div>
+                                <div class="col-span-5">系統履約單號</div>
+                                <div class="col-span-1 text-right">刪</div>
+                            </div>
+                            ${box.items.map((item, iIdx) => `
+                                <div class="grid grid-cols-12 items-center px-3 py-2 text-xs hover:bg-slate-50">
+                                    <div class="col-span-1 text-slate-400 font-mono">${iIdx + 1}</div>
+                                    <div class="col-span-5 font-mono font-semibold text-slate-800 truncate pr-1" title="${escapeHtml(item.tracking)}">
+                                        ${escapeHtml(item.tracking)}
+                                    </div>
+                                    <div class="col-span-5 font-mono truncate pr-1 ${item.matched ? 'text-emerald-700 font-medium' : 'text-amber-600'}" title="${escapeHtml(item.fulfillment)}">
+                                        ${escapeHtml(item.fulfillment)}
+                                    </div>
+                                    <div class="col-span-1 text-right">
+                                        <button onclick="deleteItem(${bIdx}, ${iIdx})" class="text-slate-300 hover:text-red-500 p-1">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        `}
+                    </div>
+                </div>`;
+            });
+
+
+            container.innerHTML = html;
+        }
+
+
+        function deleteItem(boxIdx, itemIdx) {
+            boxes[boxIdx].items.splice(itemIdx, 1);
+            saveState();
+            renderBoxes();
+        }
+
+
+        function deleteBox(boxIdx) {
+            if (!confirm(`確定要刪除「${boxes[boxIdx].name}」及其中的所有單號嗎？`)) return;
+            boxes.splice(boxIdx, 1);
+            if (activeBoxIndex >= boxes.length) {
+                activeBoxIndex = Math.max(0, boxes.length - 1);
+            }
+            syncInputsWithActiveBox();
+            saveState();
+            renderBoxes();
+        }
+
+
+        function clearAllData() {
+            if (!confirm('確定要清空所有分箱與掃描記錄嗎？')) return;
+            boxes = [{ id: Date.now(), name: 'BOX 001', weight: '', items: [] }];
+            activeBoxIndex = 0;
+            syncInputsWithActiveBox();
+            saveState();
+            renderBoxes();
+            document.getElementById('scan-feedback').classList.add('hidden');
+        }
+
+
+        // 5. 匯出 Excel (.xlsx)
+        function exportToExcel() {
+            const totalParcels = boxes.reduce((sum, b) => sum + b.items.length, 0);
+            if (totalParcels === 0) {
+                alert('目前沒有任何掃描記錄可匯出！');
+                return;
+            }
+
+
+            // 建立明細表資料
+            const detailRows = [];
+            boxes.forEach(box => {
+                const w = box.weight ? parseFloat(box.weight) : '';
+                box.items.forEach((item, idx) => {
+                    detailRows.push({
+                        '箱號 (BOX)': box.name,
+                        '箱重 (kg)': idx === 0 ? w : '', // 每箱第一列顯示總重，方便閱讀
+                        '指定運單號 (MAIL NO.)': item.tracking,
+                        '系統履約單號': item.fulfillment,
+                        '比對狀態': item.matched ? '已匹配' : '未匹配',
+                        '掃描時間': item.time
+                    });
+                });
+            });
+
+
+            // 建立各箱彙整表
+            const summaryRows = boxes.map(box => ({
+                '箱號 (BOX)': box.name,
+                '件數 (Parcels)': box.items.length,
+                '重量 (kg)': box.weight ? parseFloat(box.weight) : 0
+            }));
+
+
+            const wb = XLSX.utils.book_new();
+            const wsDetail = XLSX.utils.json_to_sheet(detailRows);
+            const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+
+
+            // 設定欄寬
+            wsDetail['!cols'] = [{ wch: 14 }, { wch: 12 }, { wch: 24 }, { wch: 24 }, { wch: 12 }, { wch: 14 }];
+            wsSummary['!cols'] = [{ wch: 16 }, { wch: 16 }, { wch: 14 }];
+
+
+            XLSX.utils.book_append_sheet(wb, wsDetail, '裝箱明細對照表');
+            XLSX.utils.book_append_sheet(wb, wsSummary, '各箱重量統計');
+
+
+            const dateStr = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `packed-list-${dateStr}.xlsx`);
+        }
+
+
+        // 6. 生成與參考 PDF 相同版型的列印 / 存為 PDF 報表
+        function exportToPDF() {
+            const totalParcels = boxes.reduce((sum, b) => sum + b.items.length, 0);
+            if (totalParcels === 0) {
+                alert('目前沒有任何掃描記錄可生成報表！');
+                return;
+            }
+
+
+            const brand = document.getElementById('report-brand').value.trim() || "Liwu's";
+            const subtitle = document.getElementById('report-subtitle').value.trim() || "Warehouse packed list";
+            const nowStr = new Date().toLocaleString('en-GB', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+            }).toUpperCase();
+
+
+            const activeBoxes = boxes.filter(b => b.items.length > 0);
+            const totalWeight = activeBoxes.reduce((sum, b) => sum + (parseFloat(b.weight) || 0), 0);
+
+
+            let boxesHtml = '';
+            activeBoxes.forEach(box => {
+                const weightText = box.weight ? `${parseFloat(box.weight).toFixed(2)} kg` : '-';
+                const rowsHtml = box.items.map((item, idx) => `
+                    <tr class="border-b border-slate-200">
+                        <td class="py-1.5 px-3 text-xs text-slate-500 w-12">${idx + 1}</td>
+                        <td class="py-1.5 px-3 text-xs font-mono font-semibold text-slate-900">${escapeHtml(item.tracking)}</td>
+                        <td class="py-1.5 px-3 text-xs font-mono text-slate-700">${escapeHtml(item.fulfillment)}</td>
+                    </tr>
+                `).join('');
+
+
+                boxesHtml += `
+                    <div class="mb-5 border border-slate-300 rounded-md overflow-hidden page-break-avoid">
+                        <div class="bg-slate-800 text-white px-3.5 py-2 flex justify-between items-center">
+                            <span class="font-bold text-sm tracking-wider">${escapeHtml(box.name)}</span>
+                            <span class="text-xs font-bold bg-slate-700 px-2.5 py-0.5 rounded">${weightText} (${box.items.length} pcs)</span>
+                        </div>
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 border-b border-slate-300 text-[11px] font-bold text-slate-600 uppercase">
+                                    <th class="py-1.5 px-3 w-12">#</th>
+                                    <th class="py-1.5 px-3">MAIL NO. (指定運單號)</th>
+                                    <th class="py-1.5 px-3">FULFILLMENT NO. (系統履約單號)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+
+
+            const printArea = document.getElementById('print-area');
+            printArea.innerHTML = `
+                <div class="max-w-3xl mx-auto">
+                    <!-- 報表頁首 (比照 packed-list-2026-11-18-1.pdf) -->
+                    <div class="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
+                        <div>
+                            <div class="text-2xl font-extrabold tracking-tight text-slate-900">${escapeHtml(brand)}</div>
+                            <div class="text-xs text-slate-500 mt-1">Report date: ${nowStr}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-base font-extrabold tracking-wide text-slate-900 uppercase">PACKING & DISPATCH REPORT</div>
+                            <div class="text-xs text-slate-600 mt-0.5">${escapeHtml(subtitle)}</div>
+                            <div class="text-xs font-bold text-slate-800 mt-1">
+                                Total boxes: ${activeBoxes.length} &nbsp;|&nbsp; Total parcels: ${totalParcels}
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- 各箱明細區塊 -->
+                    ${boxesHtml}
+
+
+                    <!-- 報表頁尾總結 -->
+                    <div class="mt-6 pt-4 border-t-2 border-slate-900 flex justify-between items-center text-xs page-break-avoid">
+                        <div class="text-slate-500">Generated by Warehouse Box Scanner</div>
+                        <div class="font-extrabold text-sm text-slate-900">
+                            TOTAL BOXES: ${activeBoxes.length} &nbsp;&nbsp;|&nbsp;&nbsp; TOTAL PARCELS: ${totalParcels} &nbsp;&nbsp;|&nbsp;&nbsp; TOTAL WEIGHT: ${totalWeight.toFixed(2)} kg
+                        </div>
+                    </div>
+                </div>
+            `;
+
+
+            // 呼叫瀏覽器列印視窗 (Android Chrome / 電腦版皆可直接選擇「另存為 PDF」)
+            setTimeout(() => {
+                window.print();
+            }, 200);
+        }
+
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>
