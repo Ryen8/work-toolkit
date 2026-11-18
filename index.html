@@ -12,7 +12,13 @@
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
     <!-- 頂部標題 -->
     <header class="bg-slate-900 text-white shadow-md">
-        <div class="max-w-md mx-auto px-4 py-5 text-center">
+        <div class="max-w-md mx-auto px-4 py-5 text-center relative">
+            <div class="flex justify-end mb-2">
+                <label for="language-select" class="sr-only">Language / Sprache</label>
+                <select id="language-select" onchange="setLanguage(this.value)" aria-label="Language / Sprache" class="bg-slate-800 text-white border border-slate-600 rounded-lg px-2 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <option value="zh">繁體中文</option><option value="en">English</option><option value="de">Deutsch</option>
+                </select>
+            </div>
             <h1 class="text-xl font-bold flex items-center justify-center gap-2">
                 <i class="fa-solid fa-toolbox text-blue-400"></i> 我的工作小工具箱
             </h1>
@@ -58,5 +64,37 @@
     <footer class="text-center text-xs text-slate-400 mt-8">
         Powered by GitHub Pages &amp; Personal AI
     </footer>
+<script>
+    // Shared by all three pages on the same GitHub Pages origin.
+    const LANGUAGE_KEY = 'work_toolkit_language';
+    const HOME_TRANSLATIONS = {
+      '我的工作小工具箱': ['My Work Toolkit', 'Meine Arbeitswerkzeuge'],
+      '個人專屬自動化與出貨管理工具總集': ['Personal automation and shipping tools', 'Persönliche Automatisierungs- und Versandtools'],
+      '裝箱掃描與單號比對系統': ['Packing Scanner & Order Matcher', 'Packscanner & Auftragsabgleich'],
+      'Excel 比對、分箱管理與 PDF 報表生成': ['Excel matching, box management & PDF reports', 'Excel-Abgleich, Kartonverwaltung & PDF-Berichte'],
+      'PDF 單號自動配對合併工具': ['PDF LP Matching & Merging Tool', 'PDF-LP-Abgleich und Zusammenführung'],
+      'LP 單號比對、PDF 頁面配對與合併匯出': ['Match LP numbers, sort PDF pages & export', 'LP-Nummern abgleichen, PDF-Seiten sortieren & exportieren']
+    };
+    function setLanguage(lang) {
+      if (!['zh','en','de'].includes(lang)) return;
+      localStorage.setItem(LANGUAGE_KEY, lang);
+      // Retain compatibility with earlier standalone versions.
+      localStorage.setItem('warehouse_language', lang);
+      localStorage.setItem('lp_pdf_language', lang);
+      document.getElementById('language-select').value = lang;
+      document.documentElement.lang = lang === 'zh' ? 'zh-TW' : lang;
+      document.querySelectorAll('[data-home-i18n]').forEach(el => {
+        const translations = HOME_TRANSLATIONS[el.dataset.homeI18n];
+        el.textContent = lang === 'zh' || !translations ? el.dataset.homeI18n : translations[lang === 'en' ? 0 : 1];
+      });
+      document.title = lang === 'zh' ? '我的工作小工具箱' : lang === 'en' ? 'My Work Toolkit' : 'Meine Arbeitswerkzeuge';
+    }
+    document.querySelectorAll('h1, header p, main h2, main p').forEach(el => {
+      const text = el.textContent.trim();
+      if (HOME_TRANSLATIONS[text]) el.dataset.homeI18n = text;
+    });
+    const initialLanguage = localStorage.getItem(LANGUAGE_KEY) || localStorage.getItem('warehouse_language') || localStorage.getItem('lp_pdf_language') || 'zh';
+    setLanguage(initialLanguage);
+</script>
 </body>
 </html>
