@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SheetJS (xlsx) 用於讀取與匯出 Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- JSZip 用於將各箱 Excel 打包成 ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- Html5-qrcode 用於相機條碼掃描 -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
@@ -190,6 +192,10 @@
                     <i class="fa-solid fa-file-pdf text-red-400"></i> 生成 PDF 報表
                 </button>
             </div>
+            <button onclick="exportBoxesToZip()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white py-3 rounded-xl text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-file-zipper"></i> 依箱號分別匯出 Excel（ZIP 打包）
+            </button>
+            <p class="text-[11px] text-slate-500">每箱獨立一個 Excel，只包含「系統履約單號」一欄；檔名自動使用箱號及重量，例如 box1-9kg.xlsx。空箱不匯出。</p>
         </section>
 
     </main>
@@ -586,6 +592,69 @@
 
             const dateStr = new Date().toISOString().slice(0, 10);
             XLSX.writeFile(wb, `packed-list-${dateStr}.xlsx`);
+        }
+
+        async function exportBoxesToZip() {
+            const filledBoxes = boxes.filter(box => box.items.length > 0);
+            if (filledBoxes.length === 0) {
+                alert('目前沒有任何掃描記錄可匯出！');
+                return;
+            }
+            if (typeof JSZip === 'undefined' || typeof XLSX === 'undefined') {
+                alert('Excel 或 ZIP 函式庫尚未載入，請檢查網路連線後重新整理頁面。');
+                return;
+            }
+
+            const zip = new JSZip();
+            const usedNames = new Set();
+            let unmatchedCount = 0;
+            filledBoxes.forEach((box, index) => {
+                // 僅輸出有效匹配的系統履約單號，避免把提示文字當成單號。
+                const values = box.items
+                    .filter(item => item.matched && item.fulfillment &&
+                        !['查無對應單號', '未上傳對照表'].includes(String(item.fulfillment)))
+                    .map(item => [String(item.fulfillment)]);
+                unmatchedCount += box.items.length - values.length;
+
+                const sheet = XLSX.utils.aoa_to_sheet([['系統履約單號'], ...values]);
+                sheet['!cols'] = [{ wch: 28 }];
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, sheet, '系統履約單號');
+                const bytes = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+                const boxName = String(box.name || `box${index + 1}`)
+                    .trim().replace(/\s+/g, '').replace(/[\\/:*?"<>|\x00-\x1f]/g, '_');
+                const weightNumber = Number(box.weight);
+                const weight = box.weight !== '' && Number.isFinite(weightNumber) && weightNumber >= 0
+                    ? String(weightNumber) : '未填重量';
+                const base = `${boxName}-${weight}kg`;
+                let filename = `${base}.xlsx`;
+                let suffix = 2;
+                while (usedNames.has(filename.toLowerCase())) {
+                    filename = `${base}-${suffix++}.xlsx`;
+                }
+                usedNames.add(filename.toLowerCase());
+                zip.file(filename, bytes);
+            });
+
+            if (unmatchedCount > 0 && !confirm(`有 ${unmatchedCount} 筆未匹配單號，分箱 Excel 將略過這些資料。仍要匯出嗎？`)) return;
+
+            try {
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const date = new Date();
+                const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                link.download = `boxes-excel-${dateStr}.zip`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+            } catch (error) {
+                console.error(error);
+                alert('分箱 Excel 匯出失敗，請重試。');
+            }
         }
 
         function exportToPDF() {
