@@ -26,6 +26,9 @@
             border: none !important;
             font-weight: 600;
         }
+        /* 與 PDF LP 配對工具一致的白色卡片、淺灰背景及間距 */
+        main > section { border-radius: 15px !important; padding: 22px !important; box-shadow: 0 2px 8px #0f172a08 !important; }
+        main > section > h2, main > section > div > h2 { font-size: 17px; }
         /* 列印 / 匯出 PDF 專用樣式 (還原 PACKING & DISPATCH REPORT 格式) */
         @media print {
             body * { visibility: hidden; }
@@ -46,34 +49,30 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-24">
 
-    <!-- 頂部導覽列 -->
-    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30 no-print">
-        <div class="max-w-2xl mx-auto px-4 py-3.5 flex justify-between items-center">
-            <div class="flex items-center gap-2.5">
-                <a href="./index.html" id="back-to-tools" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 rounded-lg px-2 py-2 text-xs font-semibold shrink-0" aria-label="返回工具列表" title="返回工具列表"><i class="fa-solid fa-arrow-left"></i><span class="hidden sm:inline ml-1">返回工具列表</span></a>
-                <div class="bg-blue-600 p-2 rounded-lg">
-                    <i class="fa-solid fa-boxes-packing text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-base font-bold leading-tight">裝箱掃描與單號比對系統</h1>
-                    <p class="text-[11px] text-slate-400">Warehouse Box Scanner & Matcher</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
+    <!-- 與 PDF 工具一致的頂部導覽與標題 -->
+    <div class="max-w-[920px] mx-auto px-4 pt-5 no-print">
+        <nav class="flex items-center justify-between gap-3 flex-wrap mb-5" aria-label="Tool navigation">
+            <div class="flex items-center gap-2">
+                <span aria-hidden="true">🌐</span>
                 <label class="sr-only" for="language-select">Language / Sprache</label>
-                <select id="language-select" onchange="setLanguage(this.value)" aria-label="Language / Sprache" class="bg-slate-800 text-white border border-slate-600 rounded-lg px-2 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer">
+                <select id="language-select" onchange="setLanguage(this.value)" aria-label="Language / Sprache" class="bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer">
                     <option value="zh">繁體中文</option>
                     <option value="en">English</option>
                     <option value="de">Deutsch</option>
                 </select>
-                <span id="header-stats" class="bg-slate-800 border border-slate-700 text-xs px-3 py-1.5 rounded-full font-medium text-blue-300">
-                    0 箱 / 0 件
-                </span>
             </div>
+            <a href="./index.html" id="back-to-tools" class="inline-flex items-center gap-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold" aria-label="返回工具列表" title="返回工具列表">← <span>返回工具列表</span></a>
+        </nav>
+        <div class="flex items-start justify-between gap-3 flex-wrap mb-5">
+            <div>
+                <h1 class="text-2xl sm:text-[25px] font-bold text-slate-900 leading-tight"><span aria-hidden="true">📦 </span><span>裝箱掃描與單號比對系統</span></h1>
+                <p class="text-sm text-slate-500 mt-2">Warehouse Box Scanner & Matcher</p>
+            </div>
+            <span id="header-stats" class="bg-white border border-slate-200 text-xs px-3 py-2 rounded-lg font-semibold text-blue-700">0 箱 / 0 件</span>
         </div>
-    </header>
+    </div>
 
-    <main class="max-w-2xl mx-auto p-4 space-y-4 no-print">
+    <main class="max-w-[920px] mx-auto px-4 pb-8 space-y-4 no-print">
 
         <!-- 步驟 1：上傳 Excel 對照表 -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
