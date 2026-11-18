@@ -58,7 +58,13 @@
                     <p class="text-[11px] text-slate-400">Warehouse Box Scanner & Matcher</p>
                 </div>
             </div>
-            <div class="text-right">
+            <div class="flex items-center gap-2 shrink-0">
+                <label class="sr-only" for="language-select">Language / Sprache</label>
+                <select id="language-select" onchange="setLanguage(this.value)" aria-label="Language / Sprache" class="bg-slate-800 text-white border border-slate-600 rounded-lg px-2 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer">
+                    <option value="zh">繁體中文</option>
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                </select>
                 <span id="header-stats" class="bg-slate-800 border border-slate-700 text-xs px-3 py-1.5 rounded-full font-medium text-blue-300">
                     0 箱 / 0 件
                 </span>
@@ -204,6 +210,45 @@
     <div id="print-area" class="hidden print:block p-8 font-sans text-slate-900 bg-white"></div>
 
     <script>
+
+        // UI language is saved independently of the box data.
+        const TRANSLATIONS = {"裝箱掃描與單號比對系統": ["Packing Scanner & Order Matcher", "Packscanner & Auftragsabgleich"], "上傳單號對照表 (Excel)": ["Upload Order Mapping (Excel)", "Auftragszuordnung hochladen (Excel)"], "尚未載入對照表": ["No mapping loaded", "Keine Zuordnung geladen"], "點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)": ["Click or drag an Excel file (.xlsx / .xls / .csv)", "Excel-Datei auswählen oder hierher ziehen (.xlsx / .xls / .csv)"], "自動識別「指定运单号」與「系统履约单号」欄位": ["Automatically detects tracking and fulfillment number columns", "Erkennt Versand- und Fulfillmentnummern automatisch"], "當前裝箱設定 & 掃描": ["Current Box & Scanning", "Aktueller Karton & Scannen"], "封箱並開下一箱": ["Close Box & Open Next", "Karton schließen & nächsten öffnen"], "當前箱號名稱 (可自訂)": ["Current Box Name (editable)", "Kartonname (bearbeitbar)"], "本箱重量 (kg)": ["Box Weight (kg)", "Kartongewicht (kg)"], "條碼掃描輸入 (支援相機或藍牙掃描槍)": ["Barcode Input (camera or Bluetooth scanner)", "Barcode-Eingabe (Kamera oder Bluetooth-Scanner)"], "連續掃描不中斷": ["Continuous Scanning", "Fortlaufend scannen"], "關閉相機": ["Stop Camera", "Kamera schließen"], "開啟相機": ["Open Camera", "Kamera öffnen"], "加入": ["Add", "Hinzufügen"], "已掃描分箱清單 (最新在最上方)": ["Scanned Boxes (newest first)", "Gescannte Kartons (neueste zuerst)"], "清空全部": ["Clear All", "Alles löschen"], "統整匯出報表": ["Export Reports", "Berichte exportieren"], "報表抬頭 / 客戶名稱": ["Report Header / Client", "Berichtskopf / Kunde"], "副標題": ["Subtitle", "Untertitel"], "匯出 Excel (.xlsx)": ["Export Excel (.xlsx)", "Excel exportieren (.xlsx)"], "生成 PDF 報表": ["Generate PDF Report", "PDF-Bericht erstellen"], "依箱號分別匯出 Excel（ZIP 打包）": ["Export Excel per Box (ZIP)", "Excel je Karton exportieren (ZIP)"], "每箱獨立一個 Excel，只包含「系統履約單號」一欄；檔名自動使用箱號及重量，例如 box1-9kg.xlsx。空箱不匯出。": ["One Excel file per box, containing only the fulfillment number column. Named by box and weight (e.g. box1-9kg.xlsx). Empty boxes are skipped.", "Eine Excel-Datei je Karton, nur mit Fulfillmentnummern. Dateiname aus Karton und Gewicht (z. B. box1-9kg.xlsx). Leere Kartons werden übersprungen."], "箱": ["boxes", "Kartons"], "件": ["items", "Pakete"], "掃描中": ["SCANNING", "AKTIV"], "未填重量": ["No weight", "Kein Gewicht"], "此箱尚無包裹，請掃描條碼加入": ["No parcels yet. Scan a barcode to add one.", "Noch keine Pakete. Zum Hinzufügen Barcode scannen."], "指定運單號 (MAIL NO.)": ["Tracking No. (MAIL NO.)", "Sendungsnummer (MAIL NO.)"], "系統履約單號": ["Fulfillment Number", "Fulfillmentnummer"], "刪": ["Del.", "Löschen"], "尚無箱子資料": ["No boxes yet", "Noch keine Kartons"], "掃描或輸入指定運單號 (按 Enter 加入)": ["Scan or enter tracking number (press Enter)", "Sendungsnummer scannen/eingeben (Enter)"], "已載入": ["Loaded", "Geladen"], "筆對照資料": ["mapping records", "Zuordnungen"], "查無對應單號": ["No matching number", "Keine Zuordnung"], "未上傳對照表": ["Mapping not uploaded", "Keine Zuordnungstabelle"], "已匹配": ["Matched", "Zugeordnet"], "未匹配": ["Unmatched", "Nicht zugeordnet"], "裝箱明細對照表": ["Box Details", "Kartondetails"], "各箱重量統計": ["Box Weight Summary", "Gewichtsübersicht"], "箱號 (BOX)": ["Box (BOX)", "Karton (BOX)"], "箱重 (kg)": ["Weight (kg)", "Gewicht (kg)"], "比對狀態": ["Match Status", "Abgleichstatus"], "掃描時間": ["Scan Time", "Scanzeit"], "件數 (Parcels)": ["Parcels", "Pakete"], "重量 (kg)": ["Weight (kg)", "Gewicht (kg)"]};
+        let currentLanguage = localStorage.getItem('warehouse_language') || 'zh';
+        function t(value) {
+            const entry = TRANSLATIONS[value];
+            return currentLanguage === 'zh' || !entry ? value : entry[currentLanguage === 'en' ? 0 : 1];
+        }
+        function translatePage(root = document.body) {
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+            const nodes = [];
+            while (walker.nextNode()) nodes.push(walker.currentNode);
+            for (const node of nodes) {
+                if (node.parentElement?.closest('script,style,option')) continue;
+                const original = node.__originalText ?? node.textContent;
+                node.__originalText = original;
+                const trimmed = original.trim();
+                if (TRANSLATIONS[trimmed]) node.textContent = original.replace(trimmed, t(trimmed));
+            }
+            root.querySelectorAll('[placeholder]').forEach(el => {
+                const orig = el.dataset.originalPlaceholder || el.getAttribute('placeholder');
+                el.dataset.originalPlaceholder = orig;
+                el.setAttribute('placeholder', t(orig));
+            });
+            document.documentElement.lang = ({zh:'zh-TW',en:'en',de:'de'})[currentLanguage];
+        }
+        function setLanguage(lang) {
+            if (!['zh','en','de'].includes(lang)) return;
+            currentLanguage = lang;
+            localStorage.setItem('warehouse_language', lang);
+            document.getElementById('language-select').value = lang;
+            translatePage();
+            renderBoxes();
+            const status = document.getElementById('excel-status');
+            if (lookupCount > 0) status.textContent = ({zh:`已載入 ${lookupCount} 筆對照資料`,en:`Loaded ${lookupCount} mapping records`,de:`${lookupCount} Zuordnungen geladen`})[lang];
+            else status.textContent = t('尚未載入對照表');
+            updateHeaderStats();
+        }
+
         let lookupMap = {};
         let lookupCount = 0;
 
@@ -221,7 +266,7 @@
             }
             activeBoxIndex = boxes.length - 1;
             syncInputsWithActiveBox();
-            renderBoxes();
+            setLanguage(currentLanguage);
         });
 
         function saveState() {
@@ -232,7 +277,7 @@
         function updateHeaderStats() {
             const totalBoxes = boxes.length;
             const totalParcels = boxes.reduce((sum, b) => sum + b.items.length, 0);
-            document.getElementById('header-stats').innerText = `${totalBoxes} 箱 / ${totalParcels} 件`;
+            document.getElementById('header-stats').innerText = currentLanguage === 'zh' ? `${totalBoxes} 箱 / ${totalParcels} 件` : currentLanguage === 'en' ? `${totalBoxes} boxes / ${totalParcels} items` : `${totalBoxes} Kartons / ${totalParcels} Pakete`;
         }
 
         function handleExcelUpload(event) {
@@ -284,10 +329,10 @@
                     renderBoxes();
 
                     const statusEl = document.getElementById('excel-status');
-                    statusEl.innerText = `已載入 ${lookupCount} 筆對照資料`;
+                    statusEl.innerText = currentLanguage === 'zh' ? `已載入 ${lookupCount} 筆對照資料` : currentLanguage === 'en' ? `Loaded ${lookupCount} mapping records` : `${lookupCount} Zuordnungen geladen`;
                     statusEl.className = 'text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full';
                 } catch (err) {
-                    alert('讀取 Excel 失敗，請確認檔案格式是否正確！');
+                    alert(message('讀取 Excel 失敗，請確認檔案格式是否正確！','Could not read Excel. Check the file format.','Excel konnte nicht gelesen werden. Bitte Dateiformat prüfen.'));
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -322,7 +367,7 @@
             syncInputsWithActiveBox();
             saveState();
             renderBoxes();
-            showFeedback(`已開啟新箱子：${defaultName}`, 'info');
+            showFeedback(message(`已開啟新箱子：${defaultName}`,`New box opened: ${defaultName}`,`Neuer Karton geöffnet: ${defaultName}`), 'info');
             document.getElementById('barcode-input').focus();
         }
 
@@ -349,7 +394,7 @@
 
             if (duplicateBoxName) {
                 playBeep(false);
-                showFeedback(`⚠️ 重複單號：${code} 已經在「${duplicateBoxName}」中！`, 'warning');
+                showFeedback(message(`⚠️ 重複單號：${code} 已經在「${duplicateBoxName}」中！`,`⚠️ Duplicate: ${code} already in ${duplicateBoxName}!`,`⚠️ Doppelte Nummer: ${code} bereits in ${duplicateBoxName}!`), 'warning');
                 return;
             }
 
@@ -371,13 +416,13 @@
 
             if (isMatched) {
                 playBeep(true);
-                showFeedback(`✅ 成功加入 [${currentBox.name}]：${code} → ${matchedFulfillment}`, 'success');
+                showFeedback(message(`✅ 成功加入 [${currentBox.name}]：${code} → ${matchedFulfillment}`,`✅ Added to [${currentBox.name}]: ${code} → ${matchedFulfillment}`,`✅ Zu [${currentBox.name}] hinzugefügt: ${code} → ${matchedFulfillment}`), 'success');
             } else if (hasLookupData) {
                 playBeep(false);
-                showFeedback(`⚠️ 已加入 [${currentBox.name}]，但 Excel 中找不到對應履約單號！`, 'warning');
+                showFeedback(message(`⚠️ 已加入 [${currentBox.name}]，但 Excel 中找不到對應履約單號！`,`⚠️ Added to [${currentBox.name}], but no matching fulfillment number found!`,`⚠️ Zu [${currentBox.name}] hinzugefügt, aber keine Fulfillmentnummer gefunden!`), 'warning');
             } else {
                 playBeep(true);
-                showFeedback(`📦 已加入 [${currentBox.name}]：${code}`, 'info');
+                showFeedback(message(`📦 已加入 [${currentBox.name}]：${code}`,`📦 Added to [${currentBox.name}]: ${code}`,`📦 Zu [${currentBox.name}] hinzugefügt: ${code}`), 'info');
             }
         }
 
@@ -437,7 +482,7 @@
                 },
                 () => {}
             ).catch(err => {
-                alert("無法開啟相機，請確認相機權限。");
+                alert(message('無法開啟相機，請確認相機權限。','Cannot open camera. Check permissions.','Kamera kann nicht geöffnet werden. Berechtigungen prüfen.'));
                 stopScanner();
             });
             isScanning = true;
@@ -523,6 +568,7 @@
             }
 
             container.innerHTML = html;
+            translatePage(container);
         }
 
         function deleteItem(boxIdx, itemIdx) {
@@ -532,7 +578,7 @@
         }
 
         function deleteBox(boxIdx) {
-            if (!confirm(`確定要刪除「${boxes[boxIdx].name}」及其中的所有單號嗎？`)) return;
+            if (!confirm(message(`確定要刪除「${boxes[boxIdx].name}」及其中的所有單號嗎？`,`Delete ${boxes[boxIdx].name} and all its numbers?`,`Karton ${boxes[boxIdx].name} und alle Nummern löschen?`))) return;
             boxes.splice(boxIdx, 1);
             if (activeBoxIndex >= boxes.length) {
                 activeBoxIndex = Math.max(0, boxes.length - 1);
@@ -543,7 +589,7 @@
         }
 
         function clearAllData() {
-            if (!confirm('確定要清空所有分箱與掃描記錄嗎？')) return;
+            if (!confirm(message('確定要清空所有分箱與掃描記錄嗎？','Delete all boxes and scan records?','Alle Kartons und Scandaten löschen?'))) return;
             boxes = [{ id: Date.now(), name: 'BOX 001', weight: '', items: [] }];
             activeBoxIndex = 0;
             syncInputsWithActiveBox();
@@ -555,7 +601,7 @@
         function exportToExcel() {
             const totalParcels = boxes.reduce((sum, b) => sum + b.items.length, 0);
             if (totalParcels === 0) {
-                alert('目前沒有任何掃描記錄可匯出！');
+                alert(message('目前沒有任何掃描記錄可匯出！','No scanned records to export.','Keine Scandaten zum Exportieren vorhanden.'));
                 return;
             }
 
@@ -597,11 +643,11 @@
         async function exportBoxesToZip() {
             const filledBoxes = boxes.filter(box => box.items.length > 0);
             if (filledBoxes.length === 0) {
-                alert('目前沒有任何掃描記錄可匯出！');
+                alert(message('目前沒有任何掃描記錄可匯出！','No scanned records to export.','Keine Scandaten zum Exportieren vorhanden.'));
                 return;
             }
             if (typeof JSZip === 'undefined' || typeof XLSX === 'undefined') {
-                alert('Excel 或 ZIP 函式庫尚未載入，請檢查網路連線後重新整理頁面。');
+                alert(message('Excel 或 ZIP 函式庫尚未載入，請檢查網路連線後重新整理頁面。','Excel or ZIP library unavailable. Check your connection and reload.','Excel- oder ZIP-Bibliothek nicht geladen. Verbindung prüfen und neu laden.'));
                 return;
             }
 
@@ -637,7 +683,7 @@
                 zip.file(filename, bytes);
             });
 
-            if (unmatchedCount > 0 && !confirm(`有 ${unmatchedCount} 筆未匹配單號，分箱 Excel 將略過這些資料。仍要匯出嗎？`)) return;
+            if (unmatchedCount > 0 && !confirm(message(`有 ${unmatchedCount} 筆未匹配單號，分箱 Excel 將略過這些資料。仍要匯出嗎？`,`${unmatchedCount} unmatched records will be skipped. Continue exporting?`,`${unmatchedCount} nicht zugeordnete Einträge werden übersprungen. Export fortsetzen?`))) return;
 
             try {
                 const blob = await zip.generateAsync({ type: 'blob' });
@@ -653,14 +699,14 @@
                 setTimeout(() => URL.revokeObjectURL(url), 60000);
             } catch (error) {
                 console.error(error);
-                alert('分箱 Excel 匯出失敗，請重試。');
+                alert(message('分箱 Excel 匯出失敗，請重試。','Box Excel export failed. Please try again.','Excel-Export je Karton fehlgeschlagen. Bitte erneut versuchen.'));
             }
         }
 
         function exportToPDF() {
             const totalParcels = boxes.reduce((sum, b) => sum + b.items.length, 0);
             if (totalParcels === 0) {
-                alert('目前沒有任何掃描記錄可生成報表！');
+                alert(message('目前沒有任何掃描記錄可生成報表！','No scanned records for the report.','Keine Scandaten für den Bericht vorhanden.'));
                 return;
             }
 
@@ -695,8 +741,8 @@
                             <thead>
                                 <tr class="bg-slate-100 border-b border-slate-300 text-[11px] font-bold text-slate-600 uppercase">
                                     <th class="py-1.5 px-3 w-12">#</th>
-                                    <th class="py-1.5 px-3">MAIL NO. (指定運單號)</th>
-                                    <th class="py-1.5 px-3">FULFILLMENT NO. (系統履約單號)</th>
+                                    <th class="py-1.5 px-3">${currentLanguage === 'de' ? 'SENDUNGSNUMMER' : currentLanguage === 'en' ? 'TRACKING NUMBER' : 'MAIL NO. (指定運單號)'}</th>
+                                    <th class="py-1.5 px-3">${currentLanguage === 'de' ? 'FULFILLMENTNUMMER' : currentLanguage === 'en' ? 'FULFILLMENT NUMBER' : 'FULFILLMENT NO. (系統履約單號)'}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -716,7 +762,7 @@
                             <div class="text-xs text-slate-500 mt-1">Report date: ${nowStr}</div>
                         </div>
                         <div class="text-right">
-                            <div class="text-base font-extrabold tracking-wide text-slate-900 uppercase">PACKING & DISPATCH REPORT</div>
+                            <div class="text-base font-extrabold tracking-wide text-slate-900 uppercase">${currentLanguage === 'de' ? 'PACK- UND VERSANDBERICHT' : 'PACKING & DISPATCH REPORT'}</div>
                             <div class="text-xs text-slate-600 mt-0.5">${escapeHtml(subtitle)}</div>
                             <div class="text-xs font-bold text-slate-800 mt-1">
                                 Total boxes: ${activeBoxes.length} &nbsp;|&nbsp; Total parcels: ${totalParcels}
@@ -740,6 +786,9 @@
             }, 200);
         }
 
+        function message(zh, en, de) {
+            return currentLanguage === 'en' ? en : currentLanguage === 'de' ? de : zh;
+        }
         function escapeHtml(str) {
             return String(str || '')
                 .replace(/&/g, '&amp;')
