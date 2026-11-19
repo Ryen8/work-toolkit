@@ -739,9 +739,9 @@
 
                 boxesHtml += `
                     <div class="mb-5 border border-slate-300 rounded-md overflow-hidden page-break-avoid">
-                        <div class="bg-slate-800 text-white px-3.5 py-2 flex justify-between items-center">
-                            <span class="font-bold text-sm tracking-wider">${escapeHtml(box.name)}</span>
-                            <span class="text-xs font-bold bg-slate-700 px-2.5 py-0.5 rounded">${weightText} (${box.items.length} pcs)</span>
+                        <div class="box-report-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:42px;padding:10px 14px;background:#1e293b;color:#ffffff;box-sizing:border-box;">
+                            <span style="display:block;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;overflow-wrap:anywhere;">${escapeHtml(box.name)}</span>
+                            <span style="display:block;flex-shrink:0;color:#ffffff;background:#334155;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:700;">${weightText} (${box.items.length} pcs)</span>
                         </div>
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -901,6 +901,14 @@
                             child.style.overflowWrap = 'anywhere';
                         });
                     }
+                    // Preserve explicit box headers in the exported PDF (not the footer).
+                    reportBody.querySelectorAll('.box-report-header').forEach(heading => {
+                        heading.style.setProperty('display', 'flex', 'important');
+                        heading.style.setProperty('background-color', '#1e293b', 'important');
+                        heading.style.setProperty('color', '#ffffff', 'important');
+                        heading.style.setProperty('min-height', '42px', 'important');
+                        heading.querySelectorAll('span').forEach(span => span.style.setProperty('color', '#ffffff', 'important'));
+                    });
                     reportBody.querySelectorAll('table').forEach(table => {
                         table.style.width = '100%';
                         table.style.maxWidth = '100%';
