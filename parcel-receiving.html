@@ -65,7 +65,30 @@ function shippingPhotoName(box,ordered){
  const duplicates=ordered.filter(x=>x.photoId&&safePhotoPart(x.sender)===safePhotoPart(box.sender)&&safePhotoPart(x.tracking)===safePhotoPart(box.tracking));
  return 'photos/'+base+(duplicates.length>1?'_'+safePhotoPart(box.id):'')+'.jpg';
 }
-function buildWorkbook(){let ordered=[...state.boxes];if(state.current.products.length&&state.current.sender&&state.current.tracking)ordered.push({...state.current,finishedAt:''});ordered.sort((a,b)=>a.sender.localeCompare(b.sender,undefined,{sensitivity:'base'})||a.createdAt.localeCompare(b.createdAt));let detail=[],summary=[];ordered.forEach((b,i)=>{let qty=b.products.reduce((s,p)=>s+p.qty,0);summary.push({'寄件人名称':b.sender,'箱号':i+1,'包裹单号':b.tracking,'参考编号 / 备注':b.reference,'包裹面单照片':b.photoId?shippingPhotoName(b,ordered):'','商品种类数':b.products.length,'商品总数量':qty,'收货日期':b.createdAt.slice(0,10)});b.products.forEach(p=>detail.push({'寄件人名称':b.sender,'箱号':i+1,'包裹单号':b.tracking,'包裹面单照片':b.photoId?shippingPhotoName(b,ordered):'','产品编号 (SKU)':p.sku,'产品条码号':p.ean,'产品名称':p.name,'数量':p.qty,'商品标签照片':p.photoId?'photos/product-'+p.photoId+'.jpg':'','参考编号 / 备注':b.reference,'收货日期':b.createdAt.slice(0,10)}))});let wb=XLSX.utils.book_new();let ws=XLSX.utils.json_to_sheet(detail),ss=XLSX.utils.json_to_sheet(summary);ws['!cols']=[{wch:26},{wch:8},{wch:25},{wch:40},{wch:22},{wch:22},{wch:48},{wch:12},{wch:38},{wch:22},{wch:16}];ss['!cols']=[{wch:26},{wch:8},{wch:25},{wch:22},{wch:40},{wch:16},{wch:15},{wch:16}];XLSX.utils.book_append_sheet(wb,ws,'商品明细');XLSX.utils.book_append_sheet(wb,ss,'包裹汇总');return {wb,ordered}}
+function buildWorkbook(){
+ let ordered=[...state.boxes];
+ if(state.current.products.length&&state.current.sender)ordered.push({...state.current,finishedAt:''});
+ ordered.sort((a,b)=>a.sender.localeCompare(b.sender,undefined,{sensitivity:'base'})||a.createdAt.localeCompare(b.createdAt));
+ const detail=[],summaryMap=new Map();
+ ordered.forEach((b,i)=>{
+  b.products.forEach(p=>{
+   detail.push({'寄件人名称':b.sender,'箱号':i+1,'包裹单号':b.tracking,'包裹面单照片':b.photoId?shippingPhotoName(b,ordered):'','产品编号 (SKU)':p.sku,'产品条码号':p.ean,'产品名称':p.name,'数量':p.qty,'商品标签照片':p.photoId?'photos/product-'+p.photoId+'.jpg':'','参考编号 / 备注':b.reference,'收货日期':b.createdAt.slice(0,10)});
+   // Group only by the original sender, SKU and barcode; never translate user-entered data.
+   const key=JSON.stringify([b.sender,p.sku,p.ean]);
+   if(!summaryMap.has(key))summaryMap.set(key,{'寄件人':b.sender,'产品编号 (SKU)':p.sku,'产品条码号':p.ean,'数量':0});
+   summaryMap.get(key)['数量']+=Number(p.qty)||0;
+  });
+ });
+ const summary=[...summaryMap.values()];
+ let wb=XLSX.utils.book_new();
+ let ws=XLSX.utils.json_to_sheet(detail,{header:['寄件人名称','箱号','包裹单号','包裹面单照片','产品编号 (SKU)','产品条码号','产品名称','数量','商品标签照片','参考编号 / 备注','收货日期']});
+ let ss=XLSX.utils.json_to_sheet(summary,{header:['寄件人','产品编号 (SKU)','产品条码号','数量']});
+ ws['!cols']=[{wch:26},{wch:8},{wch:25},{wch:40},{wch:22},{wch:22},{wch:48},{wch:12},{wch:38},{wch:22},{wch:16}];
+ ss['!cols']=[{wch:28},{wch:26},{wch:26},{wch:12}];
+ XLSX.utils.book_append_sheet(wb,ws,'商品明细');
+ XLSX.utils.book_append_sheet(wb,ss,'包裹汇总');
+ return {wb,ordered};
+}
 function localDate(){let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 async function exportData(withPhotos){if(!window.XLSX)return notify('Excel library not loaded');saveCurrent();let {wb,ordered}=buildWorkbook();if(!ordered.length)return notify('No parcels to export');let filename=localDate()+'.xlsx';if(!withPhotos){XLSX.writeFile(wb,filename);return}if(!window.JSZip)return notify('ZIP library not loaded');let zip=new JSZip();zip.file(filename,XLSX.write(wb,{bookType:'xlsx',type:'array'}));let photos=zip.folder('photos');for(let b of ordered){if(b.photoId){let blob=await getPhoto(b.photoId);if(blob)photos.file(shippingPhotoName(b,ordered).slice('photos/'.length),blob)}for(let p of b.products){if(p.photoId){let blob=await getPhoto(p.photoId);if(blob)photos.file('product-'+p.photoId+'.jpg',blob)}}}let blob=await zip.generateAsync({type:'blob'});download(blob,localDate()+'-receiving.zip')}
 function download(blob,name){let url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}async function backupJSON(){let photos={};let ids=new Set([...state.boxes,state.current].flatMap(b=>[b.photoId,...b.products.map(p=>p.photoId)]).filter(Boolean));for(let id of ids){let blob=await getPhoto(id);if(blob)photos[id]=await new Promise(resolve=>{let r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(blob)})}download(new Blob([JSON.stringify({version:1,state,photos})],{type:'application/json'}),localDate()+'-receiving-backup.json')}
