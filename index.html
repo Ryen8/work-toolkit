@@ -28,54 +28,7 @@
 
     <!-- 工具列表導覽 -->
     <main class="max-w-md mx-auto p-4 space-y-3">
-        <!-- 工具 1：PDF 單號自動配對合併工具 -->
-        <a href="./pdf-lp-matcher.html" class="block bg-white hover:bg-violet-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
-                        <i class="fa-solid fa-file-circle-check"></i>
-                    </div>
-                    <div>
-                        <h2 class="font-semibold text-slate-800 text-sm">PDF 單號自動配對合併工具</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">LP 單號比對、PDF 頁面配對與合併匯出</p>
-                    </div>
-                </div>
-                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
-            </div>
-        </a>
-
-        <!-- 工具 2：裝箱掃描與單號比對系統 -->
-        <a href="./package-scanner.html" class="block bg-white hover:bg-blue-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
-                        <i class="fa-solid fa-boxes-packing"></i>
-                    </div>
-                    <div>
-                        <h2 class="font-semibold text-slate-800 text-sm">裝箱掃描與單號比對系統</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Excel 比對、分箱管理與 PDF 報表生成</p>
-                    </div>
-                </div>
-                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
-            </div>
-        </a>
-
-        <!-- 工具 3：快遞單號 PDF 配對排序工具 -->
-        <a href="./shipment-number-matcher.html" class="block bg-white hover:bg-emerald-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
-                        <i class="fa-solid fa-truck-fast"></i>
-                    </div>
-                    <div>
-                        <h2 class="font-semibold text-slate-800 text-sm">快遞單號 PDF 配對排序工具</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">批量比對 Sendungsnummer，依 SHIPMENT_LABEL 順序合併 PDF</p>
-                    </div>
-                </div>
-                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
-            </div>
-        </a>
-        <!-- 工具 4：包裹收貨與商品掃描系統 -->
+        <!-- 工具 1：包裹收貨與商品掃描系統 -->
         <a href="./parcel-receiving.html" class="block bg-white hover:bg-amber-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -85,6 +38,70 @@
                     <div>
                         <h2 class="font-semibold text-slate-800 text-sm">包裹收貨與商品掃描系統</h2>
                         <p class="text-xs text-slate-500 mt-0.5">拍攝面單、掃描商品、分箱收貨與 Excel 匯出</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+            </div>
+        </a>
+
+        <!-- 工具 2：包裹面單與ERP倉庫出庫單自動匹配合併工具 -->
+        <a href="./pdf-lp-matcher.html" class="block bg-white hover:bg-violet-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
+                        <i class="fa-solid fa-file-circle-check"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-slate-800 text-sm">包裹面單與ERP倉庫出庫單自動匹配合併工具</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">LP 單號比對、PDF 頁面配對與合併匯出</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+            </div>
+        </a>
+
+        <!-- 工具 3：裝箱掃描系統 -->
+        <a href="./package-scanner.html" class="block bg-white hover:bg-blue-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
+                        <i class="fa-solid fa-boxes-packing"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-slate-800 text-sm">裝箱掃描系統</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">掃描 LP 單號、分箱管理與裝箱資料 Excel 匯出</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+            </div>
+        </a>
+
+        <!-- 工具 4：裝箱單號比對與報表生成 -->
+        <a href="./package-matcher.html" class="block bg-white hover:bg-cyan-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center text-lg group-hover:scale-110 transition">
+                        <i class="fa-solid fa-file-excel"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-slate-800 text-sm">裝箱單號比對與報表生成工具</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">匯入裝箱資料與 LP/SCP 對照表，生成 Excel、PDF 與 VO 報表</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+            </div>
+        </a>
+
+        <!-- 工具 5：快遞單號 PDF 配對排序工具 -->
+        <a href="./shipment-number-matcher.html" class="block bg-white hover:bg-emerald-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
+                        <i class="fa-solid fa-truck-fast"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-slate-800 text-sm">快遞單號 PDF 配對排序工具</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">批量比對 Sendungsnummer，依 SHIPMENT_LABEL 順序合併 PDF</p>
                     </div>
                 </div>
                 <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
@@ -113,7 +130,12 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
       '快遞單號 PDF 配對排序工具': ['Shipment Number PDF Matcher', 'Sendungsnummer-PDF-Abgleich'],
       '批量比對 Sendungsnummer，依 SHIPMENT_LABEL 順序合併 PDF': ['Batch match tracking numbers and merge PDFs in SHIPMENT_LABEL order', 'Sendungsnummern stapelweise abgleichen und PDFs nach SHIPMENT_LABEL sortieren'],
       '包裹收貨與商品掃描系統': ['Parcel Receiving & Product Scanner', 'Paketannahme & Produktscanner'],
-      '拍攝面單、掃描商品、分箱收貨與 Excel 匯出': ['Photograph labels, scan products, track boxes & export Excel', 'Versandetiketten fotografieren, Produkte scannen, Kartons erfassen & Excel exportieren']
+      '拍攝面單、掃描商品、分箱收貨與 Excel 匯出': ['Photograph labels, scan products, track boxes & export Excel', 'Versandetiketten fotografieren, Produkte scannen, Kartons erfassen & Excel exportieren'],
+      '包裹面單與ERP倉庫出庫單自動匹配合併工具': ['Parcel Label & ERP Warehouse Dispatch PDF Matcher', 'Paketetiketten und ERP-Lagerausgangsbelege automatisch abgleichen und zusammenführen'],
+      '裝箱掃描系統': ['Packing Scanner', 'Packscanner'],
+      '掃描 LP 單號、分箱管理與裝箱資料 Excel 匯出': ['Scan LP numbers, manage boxes & export packing Excel', 'LP-Nummern scannen, Kartons verwalten und Packdaten als Excel exportieren'],
+      '裝箱單號比對與報表生成工具': ['Packing Number Matcher & Report Generator', 'Packnummern-Abgleich und Berichtserstellung'],
+      '匯入裝箱資料與 LP/SCP 對照表，生成 Excel、PDF 與 VO 報表': ['Import packing data and LP/SCP mapping to generate Excel, PDF & VO reports', 'Packdaten und LP/SCP-Zuordnung importieren, Excel-, PDF- und VO-Berichte erstellen']
     };
     function setLanguage(lang) {
       if (!['zh','zh-CN','en','de'].includes(lang)) return;
@@ -125,7 +147,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
       document.documentElement.lang = lang === 'zh' ? 'zh-TW' : lang;
       document.querySelectorAll('[data-home-i18n]').forEach(el => {
         const translations = HOME_TRANSLATIONS[el.dataset.homeI18n];
-        el.textContent = lang === 'zh-CN' ? toSimplified(el.dataset.homeI18n) : lang === 'zh' || !translations ? el.dataset.homeI18n : translations[lang === 'en' ? 0 : 1];
+        el.textContent = lang === 'zh-CN' ? ({'包裹面單與ERP倉庫出庫單自動匹配合併工具':'包裹面单与ERP仓库出库单自动匹配合并工具','裝箱單號比對與報表生成工具':'装箱单号匹配与报表生成工具'}[el.dataset.homeI18n] || toSimplified(el.dataset.homeI18n)) : lang === 'zh' || !translations ? el.dataset.homeI18n : translations[lang === 'en' ? 0 : 1];
       });
       document.title = lang === 'zh-CN' ? '我的工作工具箱' : lang === 'zh' ? '我的工作小工具箱' : lang === 'en' ? 'My Work Toolkit' : 'Meine Arbeitswerkzeuge';
     }
