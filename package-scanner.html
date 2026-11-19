@@ -853,7 +853,7 @@
                     sheet['!cols'] = [{wch:28}];
                     const book = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(book,sheet,'sheet1');
-                    const boxName = String(box.name || `box${index+1}`).trim().replace(/\\s+/g,'').replace(/[\\/:*?"<>|\\x00-\\x1f]/g,'_');
+                    const boxName = String(box.name || `box${index+1}`).trim().replace(/\s+/g,'').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_');
                     const weightNumber = Number(box.weight);
                     const weight = box.weight !== '' && Number.isFinite(weightNumber) && weightNumber >= 0 ? String(weightNumber) : '未填重量';
                     const base = `${boxName}-${weight}kg`;
@@ -871,15 +871,50 @@
                 // Render the exact existing report markup, without opening the print dialog.
                 const report = exportToPDF(true);
                 temporary = document.createElement('div');
-                temporary.style.cssText = 'position:absolute;left:0;top:0;width:794px;background:white;z-index:-1;pointer-events:none;';
+                // A4 printable width: 210mm - 2 x 10mm = 190mm (~718px at 96dpi).
+                // Use 700px to leave extra room for font rendering differences.
+                temporary.style.cssText = 'position:absolute;left:0;top:0;width:700px;background:white;z-index:-1;pointer-events:none;';
                 const copy = report.cloneNode(true);
                 copy.classList.remove('hidden','print:block');
-                copy.style.display='block';
-                copy.style.width='794px';
+                copy.style.cssText = 'display:block;width:700px;max-width:700px;padding:0;margin:0;box-sizing:border-box;background:white;';
+                const reportBody = copy.firstElementChild;
+                if (reportBody) {
+                    reportBody.style.cssText = 'width:100%;max-width:100%;margin:0;box-sizing:border-box;';
+                    // Prevent the long heading and totals from widening the report beyond A4.
+                    const header = reportBody.firstElementChild;
+                    if (header) {
+                        header.style.flexWrap = 'wrap';
+                        header.style.gap = '12px';
+                        Array.from(header.children).forEach(child => {
+                            child.style.minWidth = '0';
+                            child.style.maxWidth = '100%';
+                            child.style.overflowWrap = 'anywhere';
+                        });
+                    }
+                    const footer = reportBody.lastElementChild;
+                    if (footer) {
+                        footer.style.flexWrap = 'wrap';
+                        footer.style.gap = '8px';
+                        Array.from(footer.children).forEach(child => {
+                            child.style.minWidth = '0';
+                            child.style.maxWidth = '100%';
+                            child.style.overflowWrap = 'anywhere';
+                        });
+                    }
+                    reportBody.querySelectorAll('table').forEach(table => {
+                        table.style.width = '100%';
+                        table.style.maxWidth = '100%';
+                        table.style.tableLayout = 'fixed';
+                        table.querySelectorAll('th,td').forEach(cell => {
+                            cell.style.overflowWrap = 'anywhere';
+                            cell.style.wordBreak = 'break-word';
+                        });
+                    });
+                }
                 temporary.appendChild(copy);
                 document.body.appendChild(temporary);
                 const pdfBlob = await html2pdf().set({
-                    margin: [8,8,8,8],
+                    margin: [10,10,10,10],
                     filename: `packing-report-${dateStr}.pdf`,
                     image: {type:'jpeg',quality:0.98},
                     html2canvas: {scale:2,useCORS:true,scrollY:0},
