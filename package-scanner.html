@@ -731,7 +731,7 @@
                 const weightText = box.weight ? `${parseFloat(box.weight).toFixed(2)} kg` : '-';
                 const rowsHtml = box.items.map((item, idx) => `
                     <tr class="border-b border-slate-200">
-                        <td class="py-1.5 px-3 text-xs text-slate-500 w-12">${idx + 1}</td>
+                        <td class="py-1.5 px-3 text-xs text-slate-500" style="width:8%;">${idx + 1}</td>
                         <td class="py-1.5 px-3 text-xs font-mono font-semibold text-slate-900">${escapeHtml(item.tracking)}</td>
                         <td class="py-1.5 px-3 text-xs font-mono text-slate-700">${escapeHtml(item.fulfillment)}</td>
                     </tr>
@@ -746,9 +746,9 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-100 border-b border-slate-300 text-[11px] font-bold text-slate-600 uppercase">
-                                    <th class="py-1.5 px-3 w-12">#</th>
-                                    <th class="py-1.5 px-3">${currentLanguage === 'de' ? 'SENDUNGSNUMMER' : currentLanguage === 'en' ? 'TRACKING NUMBER' : 'MAIL NO. (指定運單號)'}</th>
-                                    <th class="py-1.5 px-3">${currentLanguage === 'de' ? 'FULFILLMENTNUMMER' : currentLanguage === 'en' ? 'FULFILLMENT NUMBER' : 'FULFILLMENT NO. (系統履約單號)'}</th>
+                                    <th class="py-1.5 px-3" style="width:8%;">#</th>
+                                    <th class="py-1.5 px-3" style="width:46%;">${currentLanguage === 'de' ? 'SENDUNGSNUMMER' : currentLanguage === 'en' ? 'TRACKING NUMBER' : 'MAIL NO. (指定運單號)'}</th>
+                                    <th class="py-1.5 px-3" style="width:46%;">${currentLanguage === 'de' ? 'FULFILLMENTNUMMER' : currentLanguage === 'en' ? 'FULFILLMENT NUMBER' : 'FULFILLMENT NO. (系統履約單號)'}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -913,6 +913,23 @@
                         table.style.width = '100%';
                         table.style.maxWidth = '100%';
                         table.style.tableLayout = 'fixed';
+                        // Set consistent column widths for header and data rows.
+                        // A narrow index column avoids wasting a third of the page.
+                        const colgroup = document.createElement('colgroup');
+                        ['8%', '46%', '46%'].forEach(width => {
+                            const col = document.createElement('col');
+                            col.style.width = width;
+                            colgroup.appendChild(col);
+                        });
+                        table.insertBefore(colgroup, table.firstChild);
+                        table.querySelectorAll('tr').forEach(row => {
+                            const cells = row.querySelectorAll('th, td');
+                            if (cells.length === 3) {
+                                ['8%', '46%', '46%'].forEach((width, i) => {
+                                    cells[i].style.width = width;
+                                });
+                            }
+                        });
                         table.querySelectorAll('th,td').forEach(cell => {
                             cell.style.overflowWrap = 'anywhere';
                             cell.style.wordBreak = 'break-word';
