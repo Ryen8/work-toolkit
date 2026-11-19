@@ -75,13 +75,28 @@
                 <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
             </div>
         </a>
+        <!-- 工具 4：包裹收貨與商品掃描系統 -->
+        <a href="./parcel-receiving.html" class="block bg-white hover:bg-amber-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-slate-800 text-sm">包裹收貨與商品掃描系統</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">拍攝面單、掃描商品、分箱收貨與 Excel 匯出</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+            </div>
+        </a>
     </main>
 
     <footer class="text-center text-xs text-slate-400 mt-8">
         Powered by GitHub Pages &amp; Personal AI
     </footer>
 <script>
-    // Shared by all three pages on the same GitHub Pages origin.
+    // Shared by all toolkit pages on the same GitHub Pages origin.
     const LANGUAGE_KEY = 'work_toolkit_language';
     const HOME_TRANSLATIONS = {
       '我的工作小工具箱': ['My Work Toolkit', 'Meine Arbeitswerkzeuge'],
@@ -91,7 +106,9 @@
       'PDF 單號自動配對合併工具': ['PDF LP Matching & Merging Tool', 'PDF-LP-Abgleich und Zusammenführung'],
       'LP 單號比對、PDF 頁面配對與合併匯出': ['Match LP numbers, sort PDF pages & export', 'LP-Nummern abgleichen, PDF-Seiten sortieren & exportieren'],
       '快遞單號 PDF 配對排序工具': ['Shipment Number PDF Matcher', 'Sendungsnummer-PDF-Abgleich'],
-      '批量比對 Sendungsnummer，依 SHIPMENT_LABEL 順序合併 PDF': ['Batch match tracking numbers and merge PDFs in SHIPMENT_LABEL order', 'Sendungsnummern stapelweise abgleichen und PDFs nach SHIPMENT_LABEL sortieren']
+      '批量比對 Sendungsnummer，依 SHIPMENT_LABEL 順序合併 PDF': ['Batch match tracking numbers and merge PDFs in SHIPMENT_LABEL order', 'Sendungsnummern stapelweise abgleichen und PDFs nach SHIPMENT_LABEL sortieren'],
+      '包裹收貨與商品掃描系統': ['Parcel Receiving & Product Scanner', 'Paketannahme & Produktscanner'],
+      '拍攝面單、掃描商品、分箱收貨與 Excel 匯出': ['Photograph labels, scan products, track boxes & export Excel', 'Versandetiketten fotografieren, Produkte scannen, Kartons erfassen & Excel exportieren']
     };
     function setLanguage(lang) {
       if (!['zh','en','de'].includes(lang)) return;
