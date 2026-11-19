@@ -82,7 +82,7 @@
             <h2 class="font-bold text-slate-800 text-sm"><span class="bg-blue-600 text-white rounded-full px-2 py-1 mr-2">1</span><span id="packing-upload-title">上传打包人员的装箱资料（Excel）</span></h2>
             <span id="packing-import-status" class="text-xs text-slate-500">尚未导入</span>
           </div>
-          <label id="packing-dropzone" class="excel-dropzone flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-blue-50/40 transition">
+          <label id="packing-dropzone" title="Click or drop Excel" class="excel-dropzone flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-blue-50/40 transition">
             <div class="flex flex-col items-center justify-center pt-2 pb-2 text-center px-4">
               <i class="fa-solid fa-file-excel text-emerald-600 text-2xl mb-1"></i>
               <p id="packing-file-name-display" class="text-xs font-medium text-slate-700">点击选择或拖拽 Excel 文件 (.xlsx / .xls / .csv)</p>
@@ -103,7 +103,7 @@
                 <span id="excel-status" class="text-xs font-medium text-slate-400">尚未載入對照表</span>
             </div>
 
-            <label id="mapping-dropzone" class="excel-dropzone flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-blue-50/40 transition">
+            <label id="mapping-dropzone" title="Click or drop Excel" class="excel-dropzone flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-blue-50/40 transition">
                 <div class="flex flex-col items-center justify-center pt-2 pb-2 text-center px-4">
                     <i class="fa-solid fa-file-excel text-emerald-600 text-2xl mb-1"></i>
                     <p class="text-xs font-medium text-slate-700" id="file-name-display">點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)</p>
@@ -179,10 +179,10 @@
             <div class="flex justify-between items-center">
                 <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">3</span>
-                    裝箱資料與單號匹配結果
+                    <span id="matcher-preview-title">裝箱資料與單號匹配結果</span>
                 </h2>
                 <button onclick="clearImportedPacking()" class="text-xs text-red-500 hover:text-red-700 font-medium">
-                    <i class="fa-solid fa-trash-can"></i> 清空全部
+                    <i class="fa-solid fa-trash-can"></i> <span id="matcher-clear-label">清空已导入资料</span>
                 </button>
             </div>
 
