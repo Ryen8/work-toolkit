@@ -82,7 +82,14 @@
             <h2 class="font-bold text-slate-800 text-sm"><span class="bg-blue-600 text-white rounded-full px-2 py-1 mr-2">1</span><span id="packing-upload-title">上传打包人员的装箱资料（Excel）</span></h2>
             <span id="packing-import-status" class="text-xs text-slate-500">尚未导入</span>
           </div>
-          <input id="packing-upload" type="file" accept=".xlsx,.xls,.csv" class="block w-full text-sm border border-slate-300 rounded-lg p-3 bg-slate-50" onchange="importPackingData(event)">
+          <label id="packing-dropzone" class="excel-dropzone flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-blue-50/40 transition">
+            <div class="flex flex-col items-center justify-center pt-2 pb-2 text-center px-4">
+              <i class="fa-solid fa-file-excel text-emerald-600 text-2xl mb-1"></i>
+              <p id="packing-file-name-display" class="text-xs font-medium text-slate-700">点击选择或拖拽 Excel 文件 (.xlsx / .xls / .csv)</p>
+              <p id="packing-file-help" class="text-[11px] text-slate-400 mt-0.5">导入打包人员导出的装箱资料</p>
+            </div>
+            <input id="packing-upload" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importPackingData(event)">
+          </label>
           <p id="packing-upload-note" class="text-xs text-slate-500">读取装箱工具导出的 Excel；保留原箱号、箱重及 LP 单号。导入将替换本页之前导入的装箱数据。</p>
         </section>
 
@@ -90,13 +97,13 @@
         <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
             <div class="flex justify-between items-center mb-2.5">
                 <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">1</span>
+                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">2</span>
                     上傳單號對照表 (Excel)
                 </h2>
                 <span id="excel-status" class="text-xs font-medium text-slate-400">尚未載入對照表</span>
             </div>
 
-            <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-blue-50/40 transition">
+            <label id="mapping-dropzone" class="excel-dropzone flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-blue-50/40 transition">
                 <div class="flex flex-col items-center justify-center pt-2 pb-2 text-center px-4">
                     <i class="fa-solid fa-file-excel text-emerald-600 text-2xl mb-1"></i>
                     <p class="text-xs font-medium text-slate-700" id="file-name-display">點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)</p>
@@ -267,6 +274,9 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             document.querySelector('h1 span:last-child').textContent = ({zh:'裝箱單號比對與報表生成','zh-CN':'装箱单号比对与报表生成',en:'Packing Matcher & Reports',de:'Paketabgleich & Berichte'})[lang];
             document.getElementById('packing-upload-title').textContent=MATCH_LABEL[lang][2];
             document.getElementById('packing-upload-note').textContent=MATCH_LABEL[lang][3];
+            document.getElementById('packing-file-help').textContent=uiMatch('导入打包人员导出的装箱资料','Import the packing Excel from warehouse staff','Packdaten-Excel des Lagerteams importieren','匯入打包人員匯出的裝箱資料');
+            const chosenPacking=document.getElementById('packing-upload').files[0];
+            document.getElementById('packing-file-name-display').textContent=chosenPacking?chosenPacking.name:uiMatch('点击选择或拖拽 Excel 文件 (.xlsx / .xls / .csv)','Click or drag an Excel file (.xlsx / .xls / .csv)','Excel-Datei auswählen oder hierher ziehen (.xlsx / .xls / .csv)','點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)');
             document.getElementById('matcher-preview-title').textContent=uiMatch('装箱资料与单号匹配结果','Packing Data & Matching Results','Packdaten & Abgleichsergebnisse','裝箱資料與單號匹配結果');
             document.getElementById('matcher-clear-label').textContent=uiMatch('清空已导入资料','Clear Imported Data','Importierte Daten löschen','清空已匯入資料');
             renderBoxes();
@@ -294,7 +304,32 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         let lastScannedCode = '';
         let lastScannedTime = 0;
 
+        // Both Excel upload zones support file selection and actual drag-and-drop.
+        function setupExcelDropzone(zoneId, inputId, importHandler) {
+            const zone=document.getElementById(zoneId);
+            const input=document.getElementById(inputId);
+            ['dragenter','dragover'].forEach(type=>zone.addEventListener(type,event=>{
+                event.preventDefault(); event.stopPropagation();
+                zone.classList.add('border-blue-500','bg-blue-50');
+            }));
+            ['dragleave','drop'].forEach(type=>zone.addEventListener(type,event=>{
+                event.preventDefault(); event.stopPropagation();
+                zone.classList.remove('border-blue-500','bg-blue-50');
+            }));
+            zone.addEventListener('drop',event=>{
+                const file=Array.from(event.dataTransfer?.files||[])[0];
+                if(!file)return;
+                if(!/\.(xlsx|xls|csv)$/i.test(file.name)){
+                    alert(uiMatch('请选择 Excel 或 CSV 文件','Please select an Excel or CSV file','Bitte eine Excel- oder CSV-Datei auswählen','請選擇 Excel 或 CSV 檔案'));
+                    return;
+                }
+                // The import functions accept a file-input-like event; no need to mutate input.files.
+                importHandler({target:{files:[file]}});
+            });
+        }
         window.addEventListener('DOMContentLoaded', () => {
+            setupExcelDropzone('packing-dropzone','packing-upload',importPackingData);
+            setupExcelDropzone('mapping-dropzone','excel-upload',handleExcelUpload);
             if (boxes.length === 0) boxes = [];
             activeBoxIndex = boxes.length - 1;
             syncInputsWithActiveBox();
@@ -317,10 +352,12 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             if(!confirm(uiMatch('确定清空已导入的装箱资料？','Clear imported packing data?','Importierte Packdaten löschen?','確定清空已匯入的裝箱資料？'))) return;
             boxes=[];activeBoxIndex=0;saveState();renderBoxes();
             document.getElementById('packing-upload').value='';
+            document.getElementById('packing-file-name-display').textContent=uiMatch('点击选择或拖拽 Excel 文件 (.xlsx / .xls / .csv)','Click or drag an Excel file (.xlsx / .xls / .csv)','Excel-Datei auswählen oder hierher ziehen (.xlsx / .xls / .csv)','點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)');
             document.getElementById('packing-import-status').textContent=uiMatch('尚未导入','Not imported','Nicht importiert','尚未匯入');
         }
         function importPackingData(event){
             const file=event.target.files?.[0]; if(!file)return;
+            document.getElementById('packing-file-name-display').textContent=file.name;
             if(!window.XLSX){alert('Excel library unavailable');return;}
             const reader=new FileReader();
             reader.onload=e=>{
