@@ -93,7 +93,7 @@
       const text = el.textContent.trim();
       if (HOME_TRANSLATIONS[text]) el.dataset.homeI18n = text;
     });
-    const initialLanguage = localStorage.getItem(LANGUAGE_KEY) || localStorage.getItem('warehouse_language') || localStorage.getItem('lp_pdf_language') || 'zh';
+    const initialLanguage = localStorage.getItem(LANGUAGE_KEY) || localStorage.getItem('warehouse_language') || localStorage.getItem('lp_pdf_language') || 'en';
     setLanguage(initialLanguage);
 </script>
 </body>
