@@ -28,7 +28,23 @@
 
     <!-- 工具列表導覽 -->
     <main class="max-w-md mx-auto p-4 space-y-3">
-        <!-- 工具 1：裝箱掃描與單號比對系統 -->
+        <!-- 工具 1：PDF 單號自動配對合併工具 -->
+        <a href="./pdf-lp-matcher.html" class="block bg-white hover:bg-violet-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
+                        <i class="fa-solid fa-file-circle-check"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-slate-800 text-sm">PDF 單號自動配對合併工具</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">LP 單號比對、PDF 頁面配對與合併匯出</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+            </div>
+        </a>
+
+        <!-- 工具 2：裝箱掃描與單號比對系統 -->
         <a href="./package-scanner.html" class="block bg-white hover:bg-blue-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -44,16 +60,16 @@
             </div>
         </a>
 
-        <!-- 工具 2：PDF 單號自動配對合併工具 -->
-        <a href="./pdf-lp-matcher.html" class="block bg-white hover:bg-violet-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
+        <!-- 工具 3：快遞單號 PDF 配對排序工具 -->
+        <a href="./shipment-number-matcher.html" class="block bg-white hover:bg-emerald-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
-                        <i class="fa-solid fa-file-circle-check"></i>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
+                        <i class="fa-solid fa-truck-fast"></i>
                     </div>
                     <div>
-                        <h2 class="font-semibold text-slate-800 text-sm">PDF 單號自動配對合併工具</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">LP 單號比對、PDF 頁面配對與合併匯出</p>
+                        <h2 class="font-semibold text-slate-800 text-sm">快遞單號 PDF 配對排序工具</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">批量比對 Sendungsnummer，依 SHIPMENT_LABEL 順序合併 PDF</p>
                     </div>
                 </div>
                 <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
@@ -73,7 +89,9 @@
       '裝箱掃描與單號比對系統': ['Packing Scanner & Order Matcher', 'Packscanner & Auftragsabgleich'],
       'Excel 比對、分箱管理與 PDF 報表生成': ['Excel matching, box management & PDF reports', 'Excel-Abgleich, Kartonverwaltung & PDF-Berichte'],
       'PDF 單號自動配對合併工具': ['PDF LP Matching & Merging Tool', 'PDF-LP-Abgleich und Zusammenführung'],
-      'LP 單號比對、PDF 頁面配對與合併匯出': ['Match LP numbers, sort PDF pages & export', 'LP-Nummern abgleichen, PDF-Seiten sortieren & exportieren']
+      'LP 單號比對、PDF 頁面配對與合併匯出': ['Match LP numbers, sort PDF pages & export', 'LP-Nummern abgleichen, PDF-Seiten sortieren & exportieren'],
+      '快遞單號 PDF 配對排序工具': ['Shipment Number PDF Matcher', 'Sendungsnummer-PDF-Abgleich'],
+      '批量比對 Sendungsnummer，依 SHIPMENT_LABEL 順序合併 PDF': ['Batch match tracking numbers and merge PDFs in SHIPMENT_LABEL order', 'Sendungsnummern stapelweise abgleichen und PDFs nach SHIPMENT_LABEL sortieren']
     };
     function setLanguage(lang) {
       if (!['zh','en','de'].includes(lang)) return;
