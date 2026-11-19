@@ -12,6 +12,8 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <!-- JSZip 用於將各箱 Excel 打包成 ZIP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- html2pdf.js 用於將現有報表直接生成 PDF 並加入 ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Html5-qrcode 用於相機條碼掃描 -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
@@ -190,18 +192,10 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 pt-1">
-                <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white py-3 rounded-xl text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-file-excel"></i> 匯出 Excel (.xlsx)
-                </button>
-                <button onclick="exportToPDF()" class="bg-slate-800 hover:bg-slate-900 active:scale-[0.99] text-white py-3 rounded-xl text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-file-pdf text-red-400"></i> 生成 PDF 報表
-                </button>
-            </div>
-            <button onclick="exportBoxesToZip()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white py-3 rounded-xl text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-file-zipper"></i> 依箱號分別匯出 Excel（ZIP 打包）
+            <button id="export-all-btn" onclick="exportAllReportsZip()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white py-3 rounded-xl text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-file-zipper"></i> <span id="export-all-label" data-export-lang="button">一鍵打包下載全部報表（ZIP）</span>
             </button>
-            <p class="text-[11px] text-slate-500">每箱獨立一個 Excel，只包含「系統履約單號」一欄；檔名自動使用箱號及重量，例如 box1-9kg.xlsx。空箱不匯出。</p>
+            <p id="export-all-description" data-export-lang="description" class="text-[11px] text-slate-500">一次下載：Excel 裝箱總表、PDF 裝箱報表，以及各箱獨立的 VO 相容 Excel（sheet1 / 系统履约单号）。空箱不匯出。</p>
         </section>
 
     </main>
@@ -244,6 +238,13 @@
              localStorage.setItem('lp_pdf_language', lang);
             document.getElementById('language-select').value = lang;
             translatePage();
+            const exportText = {
+                zh: ['一鍵打包下載全部報表（ZIP）','一次下載：Excel 裝箱總表、PDF 裝箱報表，以及各箱獨立的 VO 相容 Excel（sheet1 / 系统履约单号）。空箱不匯出。'],
+                en: ['Download all reports (ZIP)','One download: Excel packing summary, PDF packing report, and VO-compatible Excel per box (sheet1 / 系统履约单号). Empty boxes are skipped.'],
+                de: ['Alle Berichte herunterladen (ZIP)','Ein Download: Excel-Gesamtübersicht, PDF-Packbericht und VO-kompatible Excel-Datei je Karton (sheet1 / 系统履约单号). Leere Kartons werden übersprungen.']
+            };
+            document.getElementById('export-all-label').textContent = exportText[lang][0];
+            document.getElementById('export-all-description').textContent = exportText[lang][1];
             const back = document.getElementById("back-to-tools");
             back.title = t("返回工具列表");
             back.setAttribute("aria-label", t("返回工具列表"));
@@ -708,7 +709,7 @@
             }
         }
 
-        function exportToPDF() {
+        function exportToPDF(skipPrint = false) {
             const totalParcels = boxes.reduce((sum, b) => sum + b.items.length, 0);
             if (totalParcels === 0) {
                 alert(message('目前沒有任何掃描記錄可生成報表！','No scanned records for the report.','Keine Scandaten für den Bericht vorhanden.'));
@@ -786,9 +787,121 @@
                 </div>
             `;
 
+            if (skipPrint) return printArea;
             setTimeout(() => {
                 window.print();
             }, 200);
+        }
+
+        async function exportAllReportsZip() {
+            const filledBoxes = boxes.filter(box => box.items.length > 0);
+            if (!filledBoxes.length) {
+                alert(message('目前沒有任何掃描記錄可匯出！','No scanned records to export.','Keine Scandaten zum Exportieren vorhanden.'));
+                return;
+            }
+            if (!window.XLSX || !window.JSZip || !window.html2pdf) {
+                alert(message('匯出函式庫尚未載入，請檢查網路連線。','Export libraries unavailable. Check your connection.','Exportbibliotheken fehlen. Bitte Verbindung prüfen.'));
+                return;
+            }
+            const btn = document.getElementById('export-all-btn');
+            btn.disabled = true;
+            const label = document.getElementById('export-all-label');
+            const oldLabel = label.textContent;
+            label.textContent = message('正在生成全部報表…','Generating all reports…','Alle Berichte werden erstellt…');
+            let temporary = null;
+            try {
+                const zip = new JSZip();
+                const date = new Date();
+                const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+
+                // Keep the original Excel summary layout, columns, and sheet names.
+                const detailRows = [];
+                boxes.forEach(box => {
+                    const w = box.weight ? parseFloat(box.weight) : '';
+                    box.items.forEach((item, idx) => detailRows.push({
+                        '箱號 (BOX)': box.name,
+                        '箱重 (kg)': idx === 0 ? w : '',
+                        '指定運單號 (MAIL NO.)': item.tracking,
+                        '系統履約單號': item.fulfillment,
+                        '比對狀態': item.matched ? '已匹配' : '未匹配',
+                        '掃描時間': item.time
+                    }));
+                });
+                const summaryRows = boxes.map(box => ({
+                    '箱號 (BOX)': box.name,
+                    '件數 (Parcels)': box.items.length,
+                    '重量 (kg)': box.weight ? parseFloat(box.weight) : 0
+                }));
+                const wb = XLSX.utils.book_new();
+                const wsDetail = XLSX.utils.json_to_sheet(detailRows);
+                const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+                wsDetail['!cols'] = [{wch:14},{wch:12},{wch:24},{wch:24},{wch:12},{wch:14}];
+                wsSummary['!cols'] = [{wch:16},{wch:16},{wch:14}];
+                XLSX.utils.book_append_sheet(wb,wsDetail,'裝箱明細對照表');
+                XLSX.utils.book_append_sheet(wb,wsSummary,'各箱重量統計');
+                zip.file(`packed-list-${dateStr}.xlsx`, XLSX.write(wb,{bookType:'xlsx',type:'array'}));
+
+                const usedNames = new Set();
+                let unmatchedCount = 0;
+                const boxFolder = zip.folder('boxes');
+                filledBoxes.forEach((box,index) => {
+                    const values = box.items.filter(item => item.matched && item.fulfillment &&
+                        !['查無對應單號','未上傳對照表'].includes(String(item.fulfillment)))
+                        .map(item => [String(item.fulfillment)]);
+                    unmatchedCount += box.items.length - values.length;
+                    const sheet = XLSX.utils.aoa_to_sheet([['系统履约单号'], ...values]);
+                    sheet['!cols'] = [{wch:28}];
+                    const book = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(book,sheet,'sheet1');
+                    const boxName = String(box.name || `box${index+1}`).trim().replace(/\\s+/g,'').replace(/[\\/:*?"<>|\\x00-\\x1f]/g,'_');
+                    const weightNumber = Number(box.weight);
+                    const weight = box.weight !== '' && Number.isFinite(weightNumber) && weightNumber >= 0 ? String(weightNumber) : '未填重量';
+                    const base = `${boxName}-${weight}kg`;
+                    let filename = `${base}.xlsx`, suffix=2;
+                    while (usedNames.has(filename.toLowerCase())) filename=`${base}-${suffix++}.xlsx`;
+                    usedNames.add(filename.toLowerCase());
+                    boxFolder.file(filename,XLSX.write(book,{bookType:'xlsx',type:'array'}));
+                });
+                if (unmatchedCount && !confirm(message(
+                    `有 ${unmatchedCount} 筆未匹配單號，分箱 Excel 將略過這些資料（總表及 PDF 仍保留）。繼續嗎？`,
+                    `${unmatchedCount} unmatched records will be omitted from box Excel files (but retained in the summary and PDF). Continue?`,
+                    `${unmatchedCount} nicht zugeordnete Einträge werden in Karton-Excel-Dateien ausgelassen (in Gesamtbericht und PDF bleiben sie erhalten). Fortfahren?`
+                ))) return;
+
+                // Render the exact existing report markup, without opening the print dialog.
+                const report = exportToPDF(true);
+                temporary = document.createElement('div');
+                temporary.style.cssText = 'position:absolute;left:0;top:0;width:794px;background:white;z-index:-1;pointer-events:none;';
+                const copy = report.cloneNode(true);
+                copy.classList.remove('hidden','print:block');
+                copy.style.display='block';
+                copy.style.width='794px';
+                temporary.appendChild(copy);
+                document.body.appendChild(temporary);
+                const pdfBlob = await html2pdf().set({
+                    margin: [8,8,8,8],
+                    filename: `packing-report-${dateStr}.pdf`,
+                    image: {type:'jpeg',quality:0.98},
+                    html2canvas: {scale:2,useCORS:true,scrollY:0},
+                    jsPDF: {unit:'mm',format:'a4',orientation:'portrait'},
+                    pagebreak: {mode:['css','legacy'],avoid:'.page-break-avoid'}
+                }).from(copy).outputPdf('blob');
+                zip.file(`packing-report-${dateStr}.pdf`,pdfBlob);
+                const blob = await zip.generateAsync({type:'blob'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href=url;
+                a.download=`warehouse-all-reports-${dateStr}.zip`;
+                document.body.appendChild(a);a.click();a.remove();
+                setTimeout(()=>URL.revokeObjectURL(url),60000);
+            } catch (error) {
+                console.error(error);
+                alert(message('報表打包失敗：','Report ZIP failed: ','ZIP-Erstellung fehlgeschlagen: ')+error.message);
+            } finally {
+                if (temporary) temporary.remove();
+                label.textContent = oldLabel;
+                btn.disabled = false;
+            }
         }
 
         function message(zh, en, de) {
