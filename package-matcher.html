@@ -172,7 +172,7 @@
             <div class="flex justify-between items-center">
                 <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">3</span>
-                    已掃描分箱清單 (最新在最上方)
+                    裝箱資料與單號匹配結果
                 </h2>
                 <button onclick="clearImportedPacking()" class="text-xs text-red-500 hover:text-red-700 font-medium">
                     <i class="fa-solid fa-trash-can"></i> 清空全部
@@ -216,7 +216,7 @@
     <script>
 
         // UI language is saved independently of the box data.
-        const TRANSLATIONS = {"返回工具列表": ["Back to tools", "Zur Übersicht"],"裝箱掃描與單號比對系統": ["Packing Scanner & Order Matcher", "Packscanner & Auftragsabgleich"], "上傳單號對照表 (Excel)": ["Upload Order Mapping (Excel)", "Auftragszuordnung hochladen (Excel)"], "尚未載入對照表": ["No mapping loaded", "Keine Zuordnung geladen"], "點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)": ["Click or drag an Excel file (.xlsx / .xls / .csv)", "Excel-Datei auswählen oder hierher ziehen (.xlsx / .xls / .csv)"], "自動識別「指定运单号」與「系统履约单号」欄位": ["Automatically detects tracking and fulfillment number columns", "Erkennt Versand- und Fulfillmentnummern automatisch"], "當前裝箱設定 & 掃描": ["Current Box & Scanning", "Aktueller Karton & Scannen"], "封箱並開下一箱": ["Close Box & Open Next", "Karton schließen & nächsten öffnen"], "當前箱號名稱 (可自訂)": ["Current Box Name (editable)", "Kartonname (bearbeitbar)"], "本箱重量 (kg)": ["Box Weight (kg)", "Kartongewicht (kg)"], "條碼掃描輸入 (支援相機或藍牙掃描槍)": ["Barcode Input (camera or Bluetooth scanner)", "Barcode-Eingabe (Kamera oder Bluetooth-Scanner)"], "連續掃描不中斷": ["Continuous Scanning", "Fortlaufend scannen"], "關閉相機": ["Stop Camera", "Kamera schließen"], "開啟相機": ["Open Camera", "Kamera öffnen"], "加入": ["Add", "Hinzufügen"], "已掃描分箱清單 (最新在最上方)": ["Scanned Boxes (newest first)", "Gescannte Kartons (neueste zuerst)"], "清空全部": ["Clear All", "Alles löschen"], "統整匯出報表": ["Export Reports", "Berichte exportieren"], "報表抬頭 / 客戶名稱": ["Report Header / Client", "Berichtskopf / Kunde"], "副標題": ["Subtitle", "Untertitel"], "匯出 Excel (.xlsx)": ["Export Excel (.xlsx)", "Excel exportieren (.xlsx)"], "生成 PDF 報表": ["Generate PDF Report", "PDF-Bericht erstellen"], "依箱號分別匯出 Excel（ZIP 打包）": ["Export Excel per Box (ZIP)", "Excel je Karton exportieren (ZIP)"], "每箱獨立一個 Excel，只包含「系統履約單號」一欄；檔名自動使用箱號及重量，例如 box1-9kg.xlsx。空箱不匯出。": ["One Excel file per box, containing only the fulfillment number column. Named by box and weight (e.g. box1-9kg.xlsx). Empty boxes are skipped.", "Eine Excel-Datei je Karton, nur mit Fulfillmentnummern. Dateiname aus Karton und Gewicht (z. B. box1-9kg.xlsx). Leere Kartons werden übersprungen."], "箱": ["boxes", "Kartons"], "件": ["items", "Pakete"], "掃描中": ["SCANNING", "AKTIV"], "未填重量": ["No weight", "Kein Gewicht"], "此箱尚無包裹，請掃描條碼加入": ["No parcels yet. Scan a barcode to add one.", "Noch keine Pakete. Zum Hinzufügen Barcode scannen."], "指定運單號 (MAIL NO.)": ["Tracking No. (MAIL NO.)", "Sendungsnummer (MAIL NO.)"], "系統履約單號": ["Fulfillment Number", "Fulfillmentnummer"], "刪": ["Del.", "Löschen"], "尚無箱子資料": ["No boxes yet", "Noch keine Kartons"], "掃描或輸入指定運單號 (按 Enter 加入)": ["Scan or enter tracking number (press Enter)", "Sendungsnummer scannen/eingeben (Enter)"], "已載入": ["Loaded", "Geladen"], "筆對照資料": ["mapping records", "Zuordnungen"], "查無對應單號": ["No matching number", "Keine Zuordnung"], "未上傳對照表": ["Mapping not uploaded", "Keine Zuordnungstabelle"], "已匹配": ["Matched", "Zugeordnet"], "未匹配": ["Unmatched", "Nicht zugeordnet"], "裝箱明細對照表": ["Box Details", "Kartondetails"], "各箱重量統計": ["Box Weight Summary", "Gewichtsübersicht"], "箱號 (BOX)": ["Box (BOX)", "Karton (BOX)"], "箱重 (kg)": ["Weight (kg)", "Gewicht (kg)"], "比對狀態": ["Match Status", "Abgleichstatus"], "掃描時間": ["Scan Time", "Scanzeit"], "件數 (Parcels)": ["Parcels", "Pakete"], "重量 (kg)": ["Weight (kg)", "Gewicht (kg)"]};
+        const TRANSLATIONS = {"返回工具列表": ["Back to tools", "Zur Übersicht"],"裝箱掃描與單號比對系統": ["Packing Scanner & Order Matcher", "Packscanner & Auftragsabgleich"], "上傳單號對照表 (Excel)": ["Upload Order Mapping (Excel)", "Auftragszuordnung hochladen (Excel)"], "尚未載入對照表": ["No mapping loaded", "Keine Zuordnung geladen"], "點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)": ["Click or drag an Excel file (.xlsx / .xls / .csv)", "Excel-Datei auswählen oder hierher ziehen (.xlsx / .xls / .csv)"], "自動識別「指定运单号」與「系统履约单号」欄位": ["Automatically detects tracking and fulfillment number columns", "Erkennt Versand- und Fulfillmentnummern automatisch"], "當前裝箱設定 & 掃描": ["Current Box & Scanning", "Aktueller Karton & Scannen"], "封箱並開下一箱": ["Close Box & Open Next", "Karton schließen & nächsten öffnen"], "當前箱號名稱 (可自訂)": ["Current Box Name (editable)", "Kartonname (bearbeitbar)"], "本箱重量 (kg)": ["Box Weight (kg)", "Kartongewicht (kg)"], "條碼掃描輸入 (支援相機或藍牙掃描槍)": ["Barcode Input (camera or Bluetooth scanner)", "Barcode-Eingabe (Kamera oder Bluetooth-Scanner)"], "連續掃描不中斷": ["Continuous Scanning", "Fortlaufend scannen"], "關閉相機": ["Stop Camera", "Kamera schließen"], "開啟相機": ["Open Camera", "Kamera öffnen"], "加入": ["Add", "Hinzufügen"], "裝箱資料與單號匹配結果": ["Packing Data & Matching Results", "Packdaten & Abgleichsergebnisse"], "清空已匯入資料": ["Clear Imported Data", "Importierte Daten löschen"], "統整匯出報表": ["Export Reports", "Berichte exportieren"], "報表抬頭 / 客戶名稱": ["Report Header / Client", "Berichtskopf / Kunde"], "副標題": ["Subtitle", "Untertitel"], "匯出 Excel (.xlsx)": ["Export Excel (.xlsx)", "Excel exportieren (.xlsx)"], "生成 PDF 報表": ["Generate PDF Report", "PDF-Bericht erstellen"], "依箱號分別匯出 Excel（ZIP 打包）": ["Export Excel per Box (ZIP)", "Excel je Karton exportieren (ZIP)"], "每箱獨立一個 Excel，只包含「系統履約單號」一欄；檔名自動使用箱號及重量，例如 box1-9kg.xlsx。空箱不匯出。": ["One Excel file per box, containing only the fulfillment number column. Named by box and weight (e.g. box1-9kg.xlsx). Empty boxes are skipped.", "Eine Excel-Datei je Karton, nur mit Fulfillmentnummern. Dateiname aus Karton und Gewicht (z. B. box1-9kg.xlsx). Leere Kartons werden übersprungen."], "箱": ["boxes", "Kartons"], "件": ["items", "Pakete"], "掃描中": ["SCANNING", "AKTIV"], "未填重量": ["No weight", "Kein Gewicht"], "此箱尚無包裹": ["No parcels in this box", "Keine Pakete in diesem Karton"], "指定運單號 (MAIL NO.)": ["Tracking No. (MAIL NO.)", "Sendungsnummer (MAIL NO.)"], "系統履約單號": ["Fulfillment Number", "Fulfillmentnummer"], "刪": ["Del.", "Löschen"], "尚無箱子資料": ["No boxes yet", "Noch keine Kartons"], "掃描或輸入指定運單號 (按 Enter 加入)": ["Scan or enter tracking number (press Enter)", "Sendungsnummer scannen/eingeben (Enter)"], "已載入": ["Loaded", "Geladen"], "筆對照資料": ["mapping records", "Zuordnungen"], "查無對應單號": ["No matching number", "Keine Zuordnung"], "未上傳對照表": ["Mapping not uploaded", "Keine Zuordnungstabelle"], "已匹配": ["Matched", "Zugeordnet"], "未匹配": ["Unmatched", "Nicht zugeordnet"], "裝箱明細對照表": ["Box Details", "Kartondetails"], "各箱重量統計": ["Box Weight Summary", "Gewichtsübersicht"], "箱號 (BOX)": ["Box (BOX)", "Karton (BOX)"], "箱重 (kg)": ["Weight (kg)", "Gewicht (kg)"], "比對狀態": ["Match Status", "Abgleichstatus"], "掃描時間": ["Scan Time", "Scanzeit"], "件數 (Parcels)": ["Parcels", "Pakete"], "重量 (kg)": ["Weight (kg)", "Gewicht (kg)"]};
         
 const ZH_CN_CHAR_MAP = {"並":"并","併":"并","來":"来","倉":"仓","個":"个","備":"备","傳":"传","僅":"仅","儲":"储","兩":"两","別":"别","刪":"删","動":"动","匯":"汇","區":"区","參":"参","啟":"启","單":"单","嗎":"吗","圖":"图","報":"报","塊":"块","夾":"夹","將":"将","專":"专","對":"对","導":"导","屬":"属","庫":"库","彙":"汇","後":"后","態":"态","應":"应","戶":"户","掃":"扫","換":"换","擇":"择","擊":"击","據":"据","攝":"摄","敗":"败","數":"数","斷":"断","於":"于","時":"时","會":"会","條":"条","槍":"枪","標":"标","樣":"样","機":"机","檔":"档","檢":"检","欄":"栏","權":"权","沒":"没","淺":"浅","準":"准","瀏":"浏","為":"为","無":"无","狀":"状","獨":"独","現":"现","產":"产","當":"当","確":"确","碼":"码","稱":"称","筆":"笔","籤":"签","約":"约","純":"纯","細":"细","終":"终","組":"组","結":"结","統":"统","經":"经","網":"网","線":"线","編":"编","總":"总","繼":"继","續":"续","與":"与","藍":"蓝","處":"处","號":"号","裝":"装","製":"制","複":"复","視":"视","覽":"览","訂":"订","計":"计","記":"记","設":"设","註":"注","試":"试","認":"认","誤":"误","請":"请","證":"证","識":"识","讀":"读","貨":"货","資":"资","質":"质","載":"载","輸":"输","這":"这","連":"连","進":"进","運":"运","過":"过","遞":"递","選":"选","遺":"遗","還":"还","鄰":"邻","錄":"录","錯":"错","鍵":"键","閉":"闭","開":"开","間":"间","關":"关","隱":"隐","響":"响","頁":"页","頂":"顶","順":"顺","預":"预","頭":"头","題":"题","驗":"验","驟":"骤","體":"体","點":"点"};
 const ZH_CN_PHRASES = {"汇出":"导出","下载":"下载","储存":"保存","档案":"文件","检查":"检查","对照":"对照","辨识":"识别","识别":"识别","条码":"条码","包裹单号":"包裹单号","快递单号":"快递单号","装箱":"装箱","扫描":"扫描","单号":"单号","资料":"数据","当前":"当前","出库单":"出库单","物流面单":"物流面单","配对":"匹配","未配对":"未匹配","匹配页":"匹配页","已配对":"已匹配","寄件人":"寄件人","报表":"报表","确认":"确认","数量":"数量","页码":"页码","页面":"页面","繁体中文":"繁体中文","货运":"货运","记录":"记录","点击":"点击","發货":"发货","仓库":"仓库","系统":"系统","重量":"重量","批量":"批量","产生":"生成","生成":"生成","备份":"备份","还原":"恢复","开启":"开启","关闭":"关闭","编号":"编号","标签":"标签","商品编码":"商品编码","名称":"名称","清空":"清空","汇总":"汇总"};
@@ -267,6 +267,8 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             document.querySelector('h1 span:last-child').textContent = ({zh:'裝箱單號比對與報表生成','zh-CN':'装箱单号比对与报表生成',en:'Packing Matcher & Reports',de:'Paketabgleich & Berichte'})[lang];
             document.getElementById('packing-upload-title').textContent=MATCH_LABEL[lang][2];
             document.getElementById('packing-upload-note').textContent=MATCH_LABEL[lang][3];
+            document.getElementById('matcher-preview-title').textContent=uiMatch('装箱资料与单号匹配结果','Packing Data & Matching Results','Packdaten & Abgleichsergebnisse','裝箱資料與單號匹配結果');
+            document.getElementById('matcher-clear-label').textContent=uiMatch('清空已导入资料','Clear Imported Data','Importierte Daten löschen','清空已匯入資料');
             renderBoxes();
             const status = document.getElementById('excel-status');
             if (lookupCount > 0) status.textContent = ({zh:`已載入 ${lookupCount} 筆對照資料`,en:`Loaded ${lookupCount} mapping records`,de:`${lookupCount} Zuordnungen geladen`,'zh-CN':`已加载 ${lookupCount} 条对照数据`})[lang];
@@ -413,7 +415,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                     renderBoxes();
 
                     const statusEl = document.getElementById('excel-status');
-                    statusEl.innerText = currentLanguage === 'zh' ? `已載入 ${lookupCount} 筆對照資料` : currentLanguage === 'en' ? `Loaded ${lookupCount} mapping records` : `${lookupCount} Zuordnungen geladen`;
+                    statusEl.innerText = ({zh:`已載入 ${lookupCount} 筆對照資料`,'zh-CN':`已加载 ${lookupCount} 条对照数据`,en:`Loaded ${lookupCount} mapping records`,de:`${lookupCount} Zuordnungen geladen`})[currentLanguage];
                     statusEl.className = 'text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full';
                 } catch (err) {
                     alert(message('讀取 Excel 失敗，請確認檔案格式是否正確！','Could not read Excel. Check the file format.','Excel konnte nicht gelesen werden. Bitte Dateiformat prüfen.'));
@@ -585,74 +587,35 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             }
         }
 
-        // 渲染分箱列表 (最新建立的箱子排在最上方)
+        // Read-only verification preview. Imported packing data can only be changed in the packing tool.
         function renderBoxes() {
             const container = document.getElementById('boxes-container');
             updateHeaderStats();
-
-            if (boxes.length === 0) {
-                container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">尚無箱子資料</div>`;
+            if (!boxes.length) {
+                container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">${uiMatch('尚未导入装箱资料','No packing data imported','Noch keine Packdaten importiert','尚未匯入裝箱資料')}</div>`;
                 return;
             }
-
-            let html = '';
-            for (let bIdx = boxes.length - 1; bIdx >= 0; bIdx--) {
-                const box = boxes[bIdx];
-                const isActive = bIdx === activeBoxIndex;
-                const weightDisplay = box.weight ? `${parseFloat(box.weight).toFixed(2)} kg` : '未填重量';
-
-                html += `
-                <div class="border ${isActive ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200'} rounded-xl overflow-hidden bg-white transition mb-3">
-                    <div  class="px-3.5 py-2.5 ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-800'} flex justify-between items-center cursor-pointer">
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-sm tracking-wide">${escapeHtml(box.name)}</span>
-                            <span class="text-[11px] px-2 py-0.5 rounded-full ${isActive ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-600'}">
-                                ${box.items.length} 件
-                            </span>
-                            ${isActive ? '<span class="text-[10px] bg-white text-blue-700 px-1.5 py-0.5 rounded font-bold">掃描中</span>' : ''}
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-bold ${isActive ? 'text-blue-100' : 'text-slate-600'}">${weightDisplay}</span>
-                            ${boxes.length > 1 ? `
-                            <button  class="${isActive ? 'text-blue-200 hover:text-white' : 'text-slate-400 hover:text-red-500'} text-xs p-1" title="刪除此箱">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>` : ''}
-                        </div>
-                    </div>
-
-                    <div class="divide-y divide-slate-100">
-                        ${box.items.length === 0 ? `
-                            <div class="py-4 text-center text-xs text-slate-400">此箱尚無包裹，請掃描條碼加入</div>
-                        ` : `
-                            <div class="grid grid-cols-12 bg-slate-50 px-3 py-1.5 text-[11px] font-bold text-slate-500 border-b border-slate-200">
-                                <div class="col-span-1">#</div>
-                                <div class="col-span-5">指定運單號 (MAIL NO.)</div>
-                                <div class="col-span-5">系統履約單號</div>
-                                <div class="col-span-1 text-right">刪</div>
-                            </div>
-                            ${box.items.map((item, iIdx) => `
-                                <div class="grid grid-cols-12 items-center px-3 py-2 text-xs hover:bg-slate-50">
-                                    <div class="col-span-1 text-slate-400 font-mono">${iIdx + 1}</div>
-                                    <div class="col-span-5 font-mono font-semibold text-slate-800 truncate pr-1" title="${escapeHtml(item.tracking)}">
-                                        ${escapeHtml(item.tracking)}
-                                    </div>
-                                    <div class="col-span-5 font-mono truncate pr-1 ${item.matched ? 'text-emerald-700 font-medium' : 'text-amber-600'}" title="${escapeHtml(item.fulfillment)}">
-                                        ${escapeHtml(item.fulfillment)}
-                                    </div>
-                                    <div class="col-span-1 text-right">
-                                        <button  class="text-slate-300 hover:text-red-500 p-1">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        `}
-                    </div>
-                </div>`;
-            }
-
-            container.innerHTML = html;
-            translatePage(container);
+            const hasMapping = lookupCount > 0;
+            const total = boxes.reduce((n,b)=>n+b.items.length,0);
+            const matched = boxes.reduce((n,b)=>n+b.items.filter(i=>i.matched).length,0);
+            const summary = `<div class="grid grid-cols-3 gap-2 mb-4 text-center text-xs">
+                <div class="bg-slate-50 rounded-lg p-3"><div class="text-slate-500">${uiMatch('总件数','Total','Gesamt','總件數')}</div><b class="text-base text-slate-800">${total}</b></div>
+                <div class="bg-emerald-50 rounded-lg p-3"><div class="text-emerald-700">${uiMatch('已匹配','Matched','Zugeordnet','已匹配')}</div><b class="text-base text-emerald-700">${hasMapping?matched:'—'}</b></div>
+                <div class="bg-amber-50 rounded-lg p-3"><div class="text-amber-700">${uiMatch('未匹配','Unmatched','Nicht zugeordnet','未匹配')}</div><b class="text-base text-amber-700">${hasMapping?total-matched:'—'}</b></div>
+            </div>`;
+            const cards = boxes.map(box=>{
+                const ok=box.items.filter(i=>i.matched).length;
+                const weight=box.weight!=='' && box.weight!=null && Number.isFinite(Number(box.weight)) ? Number(box.weight).toFixed(2)+' kg' : '—';
+                return `<details class="border border-slate-200 rounded-xl overflow-hidden bg-white mb-3" open>
+                    <summary class="bg-slate-50 px-3.5 py-3 cursor-pointer flex flex-wrap items-center justify-between gap-2">
+                        <span class="font-bold text-sm">${escapeHtml(box.name)} <span class="text-slate-500 font-normal">(${box.items.length} ${uiMatch('件','items','Pakete','件')})</span></span>
+                        <span class="flex gap-3 items-center text-xs"><span>${escapeHtml(weight)}</span><span class="${hasMapping && ok===box.items.length?'text-emerald-700':'text-amber-700'} font-semibold">${hasMapping?`${ok}/${box.items.length} ${uiMatch('已匹配','matched','zugeordnet','已匹配')}`:uiMatch('待上传对照表','Mapping pending','Zuordnung fehlt','待上傳對照表')}</span></span>
+                    </summary>
+                    <div class="overflow-x-auto"><table class="w-full text-xs text-left"><thead class="bg-slate-50 text-slate-500"><tr><th class="p-2 w-9">#</th><th class="p-2">${uiMatch('指定运单号 (MAIL NO.)','Tracking No. (MAIL NO.)','Sendungsnummer (MAIL NO.)','指定運單號 (MAIL NO.)')}</th><th class="p-2">${uiMatch('系统履约单号','Fulfillment Number','Fulfillmentnummer','系統履約單號')}</th><th class="p-2">${uiMatch('匹配状态','Status','Status','匹配狀態')}</th></tr></thead>
+                    <tbody class="divide-y divide-slate-100">${box.items.map((item,i)=>`<tr><td class="p-2 text-slate-400">${i+1}</td><td class="p-2 font-mono break-all">${escapeHtml(item.tracking)}</td><td class="p-2 font-mono break-all">${item.matched?escapeHtml(item.fulfillment):'—'}</td><td class="p-2 whitespace-nowrap ${!hasMapping?'text-slate-400':item.matched?'text-emerald-700':'text-amber-700'}">${!hasMapping?uiMatch('待匹配','Pending','Ausstehend','待匹配'):item.matched?uiMatch('已匹配','Matched','Zugeordnet','已匹配'):uiMatch('未匹配','Unmatched','Nicht zugeordnet','未匹配')}</td></tr>`).join('')}</tbody></table></div>
+                </details>`;
+            }).join('');
+            container.innerHTML=summary+cards;
         }
 
         function deleteItem(boxIdx, itemIdx) {
