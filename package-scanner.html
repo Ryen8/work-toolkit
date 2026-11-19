@@ -58,7 +58,7 @@
                 <span aria-hidden="true">🌐</span>
                 <label class="sr-only" for="language-select">Language / Sprache</label>
                 <select id="language-select" onchange="setLanguage(this.value)" aria-label="Language / Sprache" class="bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer">
-                    <option value="zh">繁體中文</option>
+                    <option value="zh">繁體中文</option><option value="zh-CN">简体中文</option>
                     <option value="en">English</option>
                     <option value="de">Deutsch</option>
                 </select>
@@ -207,10 +207,15 @@
 
         // UI language is saved independently of the box data.
         const TRANSLATIONS = {"返回工具列表": ["Back to tools", "Zur Übersicht"],"裝箱掃描與單號比對系統": ["Packing Scanner & Order Matcher", "Packscanner & Auftragsabgleich"], "上傳單號對照表 (Excel)": ["Upload Order Mapping (Excel)", "Auftragszuordnung hochladen (Excel)"], "尚未載入對照表": ["No mapping loaded", "Keine Zuordnung geladen"], "點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)": ["Click or drag an Excel file (.xlsx / .xls / .csv)", "Excel-Datei auswählen oder hierher ziehen (.xlsx / .xls / .csv)"], "自動識別「指定运单号」與「系统履约单号」欄位": ["Automatically detects tracking and fulfillment number columns", "Erkennt Versand- und Fulfillmentnummern automatisch"], "當前裝箱設定 & 掃描": ["Current Box & Scanning", "Aktueller Karton & Scannen"], "封箱並開下一箱": ["Close Box & Open Next", "Karton schließen & nächsten öffnen"], "當前箱號名稱 (可自訂)": ["Current Box Name (editable)", "Kartonname (bearbeitbar)"], "本箱重量 (kg)": ["Box Weight (kg)", "Kartongewicht (kg)"], "條碼掃描輸入 (支援相機或藍牙掃描槍)": ["Barcode Input (camera or Bluetooth scanner)", "Barcode-Eingabe (Kamera oder Bluetooth-Scanner)"], "連續掃描不中斷": ["Continuous Scanning", "Fortlaufend scannen"], "關閉相機": ["Stop Camera", "Kamera schließen"], "開啟相機": ["Open Camera", "Kamera öffnen"], "加入": ["Add", "Hinzufügen"], "已掃描分箱清單 (最新在最上方)": ["Scanned Boxes (newest first)", "Gescannte Kartons (neueste zuerst)"], "清空全部": ["Clear All", "Alles löschen"], "統整匯出報表": ["Export Reports", "Berichte exportieren"], "報表抬頭 / 客戶名稱": ["Report Header / Client", "Berichtskopf / Kunde"], "副標題": ["Subtitle", "Untertitel"], "匯出 Excel (.xlsx)": ["Export Excel (.xlsx)", "Excel exportieren (.xlsx)"], "生成 PDF 報表": ["Generate PDF Report", "PDF-Bericht erstellen"], "依箱號分別匯出 Excel（ZIP 打包）": ["Export Excel per Box (ZIP)", "Excel je Karton exportieren (ZIP)"], "每箱獨立一個 Excel，只包含「系統履約單號」一欄；檔名自動使用箱號及重量，例如 box1-9kg.xlsx。空箱不匯出。": ["One Excel file per box, containing only the fulfillment number column. Named by box and weight (e.g. box1-9kg.xlsx). Empty boxes are skipped.", "Eine Excel-Datei je Karton, nur mit Fulfillmentnummern. Dateiname aus Karton und Gewicht (z. B. box1-9kg.xlsx). Leere Kartons werden übersprungen."], "箱": ["boxes", "Kartons"], "件": ["items", "Pakete"], "掃描中": ["SCANNING", "AKTIV"], "未填重量": ["No weight", "Kein Gewicht"], "此箱尚無包裹，請掃描條碼加入": ["No parcels yet. Scan a barcode to add one.", "Noch keine Pakete. Zum Hinzufügen Barcode scannen."], "指定運單號 (MAIL NO.)": ["Tracking No. (MAIL NO.)", "Sendungsnummer (MAIL NO.)"], "系統履約單號": ["Fulfillment Number", "Fulfillmentnummer"], "刪": ["Del.", "Löschen"], "尚無箱子資料": ["No boxes yet", "Noch keine Kartons"], "掃描或輸入指定運單號 (按 Enter 加入)": ["Scan or enter tracking number (press Enter)", "Sendungsnummer scannen/eingeben (Enter)"], "已載入": ["Loaded", "Geladen"], "筆對照資料": ["mapping records", "Zuordnungen"], "查無對應單號": ["No matching number", "Keine Zuordnung"], "未上傳對照表": ["Mapping not uploaded", "Keine Zuordnungstabelle"], "已匹配": ["Matched", "Zugeordnet"], "未匹配": ["Unmatched", "Nicht zugeordnet"], "裝箱明細對照表": ["Box Details", "Kartondetails"], "各箱重量統計": ["Box Weight Summary", "Gewichtsübersicht"], "箱號 (BOX)": ["Box (BOX)", "Karton (BOX)"], "箱重 (kg)": ["Weight (kg)", "Gewicht (kg)"], "比對狀態": ["Match Status", "Abgleichstatus"], "掃描時間": ["Scan Time", "Scanzeit"], "件數 (Parcels)": ["Parcels", "Pakete"], "重量 (kg)": ["Weight (kg)", "Gewicht (kg)"]};
+        
+const ZH_CN_CHAR_MAP = {"並":"并","併":"并","來":"来","倉":"仓","個":"个","備":"备","傳":"传","僅":"仅","儲":"储","兩":"两","別":"别","刪":"删","動":"动","匯":"汇","區":"区","參":"参","啟":"启","單":"单","嗎":"吗","圖":"图","報":"报","塊":"块","夾":"夹","將":"将","專":"专","對":"对","導":"导","屬":"属","庫":"库","彙":"汇","後":"后","態":"态","應":"应","戶":"户","掃":"扫","換":"换","擇":"择","擊":"击","據":"据","攝":"摄","敗":"败","數":"数","斷":"断","於":"于","時":"时","會":"会","條":"条","槍":"枪","標":"标","樣":"样","機":"机","檔":"档","檢":"检","欄":"栏","權":"权","沒":"没","淺":"浅","準":"准","瀏":"浏","為":"为","無":"无","狀":"状","獨":"独","現":"现","產":"产","當":"当","確":"确","碼":"码","稱":"称","筆":"笔","籤":"签","約":"约","純":"纯","細":"细","終":"终","組":"组","結":"结","統":"统","經":"经","網":"网","線":"线","編":"编","總":"总","繼":"继","續":"续","與":"与","藍":"蓝","處":"处","號":"号","裝":"装","製":"制","複":"复","視":"视","覽":"览","訂":"订","計":"计","記":"记","設":"设","註":"注","試":"试","認":"认","誤":"误","請":"请","證":"证","識":"识","讀":"读","貨":"货","資":"资","質":"质","載":"载","輸":"输","這":"这","連":"连","進":"进","運":"运","過":"过","遞":"递","選":"选","遺":"遗","還":"还","鄰":"邻","錄":"录","錯":"错","鍵":"键","閉":"闭","開":"开","間":"间","關":"关","隱":"隐","響":"响","頁":"页","頂":"顶","順":"顺","預":"预","頭":"头","題":"题","驗":"验","驟":"骤","體":"体","點":"点"};
+const ZH_CN_PHRASES = {"汇出":"导出","下载":"下载","储存":"保存","档案":"文件","检查":"检查","对照":"对照","辨识":"识别","识别":"识别","条码":"条码","包裹单号":"包裹单号","快递单号":"快递单号","装箱":"装箱","扫描":"扫描","单号":"单号","资料":"数据","当前":"当前","出库单":"出库单","物流面单":"物流面单","配对":"匹配","未配对":"未匹配","匹配页":"匹配页","已配对":"已匹配","寄件人":"寄件人","报表":"报表","确认":"确认","数量":"数量","页码":"页码","页面":"页面","繁体中文":"繁体中文","货运":"货运","记录":"记录","点击":"点击","發货":"发货","仓库":"仓库","系统":"系统","重量":"重量","批量":"批量","产生":"生成","生成":"生成","备份":"备份","还原":"恢复","开启":"开启","关闭":"关闭","编号":"编号","标签":"标签","商品编码":"商品编码","名称":"名称","清空":"清空","汇总":"汇总"};
+function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_MAP[c] || c).join(''); for (const [a,b] of Object.entries(ZH_CN_PHRASES)) s = s.split(a).join(b); return s; }
+
         let currentLanguage = localStorage.getItem('work_toolkit_language') || localStorage.getItem('warehouse_language') || 'en';
         function t(value) {
             const entry = TRANSLATIONS[value];
-            return currentLanguage === 'zh' || !entry ? value : entry[currentLanguage === 'en' ? 0 : 1];
+            return currentLanguage === 'zh-CN' ? toSimplified(value) : currentLanguage === 'zh' || !entry ? value : entry[currentLanguage === 'en' ? 0 : 1];
         }
         function translatePage(root = document.body) {
             const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -228,10 +233,10 @@
                 el.dataset.originalPlaceholder = orig;
                 el.setAttribute('placeholder', t(orig));
             });
-            document.documentElement.lang = ({zh:'zh-TW',en:'en',de:'de'})[currentLanguage];
+            document.documentElement.lang = ({zh:'zh-TW','zh-CN':'zh-CN',en:'en',de:'de'})[currentLanguage];
         }
         function setLanguage(lang) {
-            if (!['zh','en','de'].includes(lang)) return;
+            if (!['zh','zh-CN','en','de'].includes(lang)) return;
             currentLanguage = lang;
             localStorage.setItem('work_toolkit_language', lang);
              localStorage.setItem('warehouse_language', lang);
@@ -239,6 +244,7 @@
             document.getElementById('language-select').value = lang;
             translatePage();
             const exportText = {
+                'zh-CN': ['一键打包下载全部报表（ZIP）','一次下载：Excel 装箱总表、PDF 装箱报表，以及各箱独立的 VO 兼容 Excel（sheet1 / 系统履约单号）。空箱不导出。'],
                 zh: ['一鍵打包下載全部報表（ZIP）','一次下載：Excel 裝箱總表、PDF 裝箱報表，以及各箱獨立的 VO 相容 Excel（sheet1 / 系统履约单号）。空箱不匯出。'],
                 en: ['Download all reports (ZIP)','One download: Excel packing summary, PDF packing report, and VO-compatible Excel per box (sheet1 / 系统履约单号). Empty boxes are skipped.'],
                 de: ['Alle Berichte herunterladen (ZIP)','Ein Download: Excel-Gesamtübersicht, PDF-Packbericht und VO-kompatible Excel-Datei je Karton (sheet1 / 系统履约单号). Leere Kartons werden übersprungen.']
@@ -250,7 +256,7 @@
             back.setAttribute("aria-label", t("返回工具列表"));
             renderBoxes();
             const status = document.getElementById('excel-status');
-            if (lookupCount > 0) status.textContent = ({zh:`已載入 ${lookupCount} 筆對照資料`,en:`Loaded ${lookupCount} mapping records`,de:`${lookupCount} Zuordnungen geladen`})[lang];
+            if (lookupCount > 0) status.textContent = ({zh:`已載入 ${lookupCount} 筆對照資料`,en:`Loaded ${lookupCount} mapping records`,de:`${lookupCount} Zuordnungen geladen`,'zh-CN':`已加载 ${lookupCount} 条对照数据`})[lang];
             else status.textContent = t('尚未載入對照表');
             updateHeaderStats();
         }
@@ -925,7 +931,7 @@
                         table.querySelectorAll('tr').forEach(row => {
                             const cells = row.querySelectorAll('th, td');
                             if (cells.length === 3) {
-                                ['20%', '40%', '40%'].forEach((width, i) => {
+                                ['8%', '46%', '46%'].forEach((width, i) => {
                                     cells[i].style.width = width;
                                 });
                             }
