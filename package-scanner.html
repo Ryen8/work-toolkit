@@ -737,9 +737,9 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                 const weightText = box.weight ? `${parseFloat(box.weight).toFixed(2)} kg` : '-';
                 const rowsHtml = box.items.map((item, idx) => `
                     <tr class="border-b border-slate-200">
-                        <td class="py-1.5 px-3 text-xs text-slate-500" style="width:8%;">${idx + 1}</td>
-                        <td class="py-1.5 px-3 text-xs font-mono font-semibold text-slate-900">${escapeHtml(item.tracking)}</td>
-                        <td class="py-1.5 px-3 text-xs font-mono text-slate-700">${escapeHtml(item.fulfillment)}</td>
+                        <td class="py-1.5 px-3 text-xs text-slate-500" style="width:8%;text-align:center;">${idx + 1}</td>
+                        <td class="py-1.5 px-3 text-xs font-mono font-semibold text-slate-900" style="width:46%;text-align:center;">${escapeHtml(item.tracking)}</td>
+                        <td class="py-1.5 px-3 text-xs font-mono text-slate-700" style="width:46%;text-align:center;">${escapeHtml(item.fulfillment)}</td>
                     </tr>
                 `).join('');
 
@@ -749,12 +749,13 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                             <span style="display:block;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.04em;overflow-wrap:anywhere;">${escapeHtml(box.name)}</span>
                             <span style="display:block;flex-shrink:0;color:#ffffff;background:#334155;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:700;">${weightText} (${box.items.length} pcs)</span>
                         </div>
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full border-collapse" style="width:100%;table-layout:fixed;text-align:center;">
+                            <colgroup><col style="width:8%"><col style="width:46%"><col style="width:46%"></colgroup>
                             <thead>
                                 <tr class="bg-slate-100 border-b border-slate-300 text-[11px] font-bold text-slate-600 uppercase">
-                                    <th class="py-1.5 px-3" style="width:8%;">#</th>
-                                    <th class="py-1.5 px-3" style="width:46%;">指定运单号 (MAIL NO.)</th>
-                                    <th class="py-1.5 px-3" style="width:46%;">系统履约单号</th>
+                                    <th class="py-1.5 px-3" style="text-align:center;width:8%;">#</th>
+                                    <th class="py-1.5 px-3" style="text-align:center;width:46%;">指定运单号 (MAIL NO.)</th>
+                                    <th class="py-1.5 px-3" style="text-align:center;width:46%;">系统履约单号</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -927,16 +928,20 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                             col.style.width = width;
                             colgroup.appendChild(col);
                         });
+                        const existingColgroup = table.querySelector('colgroup');
+                        if (existingColgroup) existingColgroup.remove();
                         table.insertBefore(colgroup, table.firstChild);
                         table.querySelectorAll('tr').forEach(row => {
                             const cells = row.querySelectorAll('th, td');
                             if (cells.length === 3) {
                                 ['8%', '46%', '46%'].forEach((width, i) => {
                                     cells[i].style.width = width;
+                                    cells[i].style.textAlign = 'center';
                                 });
                             }
                         });
                         table.querySelectorAll('th,td').forEach(cell => {
+                            cell.style.textAlign = 'center';
                             cell.style.overflowWrap = 'anywhere';
                             cell.style.wordBreak = 'break-word';
                         });
