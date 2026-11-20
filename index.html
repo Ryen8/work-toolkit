@@ -9,7 +9,14 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- FontAwesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
-</head>
+<style>/* Collapsible category navigation: closed by default */
+.tool-accordion > summary { list-style: none; }
+.tool-accordion > summary::-webkit-details-marker { display: none; }
+.tool-accordion[open] .accordion-chevron { transform: rotate(180deg); }
+.tool-accordion[open] { border-color: #bfdbfe; }
+.tool-accordion > summary:focus-visible { outline-offset: -3px; }
+@media (prefers-reduced-motion: reduce) { .accordion-chevron { transition: none !important; } }
+</style></head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
 <!-- 頂部標題 -->
 <header class="bg-slate-900 text-white shadow-md">
@@ -27,7 +34,7 @@
 </div>
 </header>
 <!-- 工具列表導覽 -->
-<main class="max-w-md mx-auto p-4 flex flex-col gap-7"><section aria-label="倉庫到貨&amp;打包裝箱" class="space-y-3"><div class="flex items-center gap-3 px-1 pt-2 pb-1"><div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-warehouse"></i></div><div><h2 class="text-base font-bold text-slate-800">倉庫到貨&amp;打包裝箱</h2><p class="text-xs text-slate-500 mt-0.5">收貨、商品掃描與打包裝箱</p></div></div><a class="block bg-white hover:bg-amber-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./parcel-receiving.html">
+<main class="max-w-md mx-auto p-4 flex flex-col gap-7"><details class="tool-accordion group rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"><summary aria-label="展开或收起工具分类" class="flex cursor-pointer select-none items-center justify-between gap-3 p-4 hover:bg-slate-50 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"><div class="flex items-center gap-3 min-w-0 flex-1"><div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-warehouse"></i></div><div><h2 class="text-base font-bold text-slate-800">倉庫到貨&amp;打包裝箱</h2><p class="text-xs text-slate-500 mt-0.5">收貨、商品掃描與打包裝箱</p></div></div><div class="flex shrink-0 items-center gap-3"><span class="text-xs font-medium text-slate-500" data-tool-count="2">2</span><i class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200 accordion-chevron"></i></div></summary><div class="accordion-content border-t border-slate-100 bg-slate-50/60 p-3 space-y-3"><a class="block bg-white hover:bg-amber-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./parcel-receiving.html">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3">
 <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
@@ -53,7 +60,7 @@
 </div>
 <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
 </div>
-</a></section><section aria-label="天貓訂單處理" class="space-y-3"><div class="flex items-center gap-3 px-1 pt-2 pb-1"><div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-list-check"></i></div><div><h2 class="text-base font-bold text-slate-800">天貓訂單處理</h2><p class="text-xs text-slate-500 mt-0.5">天貓面單單號比對、文件合併與 Excel 資料轉換</p></div></div><a class="block bg-white hover:bg-indigo-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./vo-to-erp.html">
+</a></div></details><details class="tool-accordion group rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"><summary aria-label="展开或收起工具分类" class="flex cursor-pointer select-none items-center justify-between gap-3 p-4 hover:bg-slate-50 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"><div class="flex items-center gap-3 min-w-0 flex-1"><div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-list-check"></i></div><div><h2 class="text-base font-bold text-slate-800">天貓訂單處理</h2><p class="text-xs text-slate-500 mt-0.5">天貓面單單號比對、文件合併與 Excel 資料轉換</p></div></div><div class="flex shrink-0 items-center gap-3"><span class="text-xs font-medium text-slate-500" data-tool-count="3">3</span><i class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200 accordion-chevron"></i></div></summary><div class="accordion-content border-t border-slate-100 bg-slate-50/60 p-3 space-y-3"><a class="block bg-white hover:bg-indigo-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./vo-to-erp.html">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3">
 <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
@@ -95,8 +102,7 @@
 <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
 </div>
 </a>
-
-</section><section aria-label="得物訂單處理" class="space-y-3"><div class="flex items-center gap-3 px-1 pt-2 pb-1"><div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-boxes-stacked"></i></div><div><h2 class="text-base font-bold text-slate-800">得物訂單處理</h2><p class="text-xs text-slate-500 mt-0.5">得物面單與 ERP 出庫單配對及匯出</p></div></div><a class="block bg-white hover:bg-teal-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./dewu-pdf-matcher.html"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-file-circle-check"></i></div><div><h2 class="font-semibold text-slate-800 text-sm">得物面單與 ERP 出庫單匹配工具</h2><p class="text-xs text-slate-500 mt-0.5">按得物訂單號配對、商品分組、匯出 PDF + Excel</p></div></div><i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i></div></a></section><section aria-label="倉庫發貨" class="space-y-3"><div class="flex items-center gap-3 px-1 pt-2 pb-1"><div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-truck-ramp-box"></i></div><div><h2 class="text-base font-bold text-slate-800">倉庫發貨</h2><p class="text-xs text-slate-500 mt-0.5">裝箱單號比對、發貨報表與 DHL 面單整理</p></div></div><a class="block bg-white hover:bg-cyan-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./package-matcher.html">
+</div></details><details class="tool-accordion group rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"><summary aria-label="展开或收起工具分类" class="flex cursor-pointer select-none items-center justify-between gap-3 p-4 hover:bg-slate-50 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"><div class="flex items-center gap-3 min-w-0 flex-1"><div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-boxes-stacked"></i></div><div><h2 class="text-base font-bold text-slate-800">得物訂單處理</h2><p class="text-xs text-slate-500 mt-0.5">得物面單與 ERP 出庫單配對及匯出</p></div></div><div class="flex shrink-0 items-center gap-3"><span class="text-xs font-medium text-slate-500" data-tool-count="1">1</span><i class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200 accordion-chevron"></i></div></summary><div class="accordion-content border-t border-slate-100 bg-slate-50/60 p-3 space-y-3"><a class="block bg-white hover:bg-teal-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./dewu-pdf-matcher.html"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-file-circle-check"></i></div><div><h2 class="font-semibold text-slate-800 text-sm">得物面單與 ERP 出庫單匹配工具</h2><p class="text-xs text-slate-500 mt-0.5">按得物訂單號配對、商品分組、匯出 PDF + Excel</p></div></div><i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i></div></a></div></details><details class="tool-accordion group rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"><summary aria-label="展开或收起工具分类" class="flex cursor-pointer select-none items-center justify-between gap-3 p-4 hover:bg-slate-50 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"><div class="flex items-center gap-3 min-w-0 flex-1"><div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-truck-ramp-box"></i></div><div><h2 class="text-base font-bold text-slate-800">倉庫發貨</h2><p class="text-xs text-slate-500 mt-0.5">裝箱單號比對、發貨報表與 DHL 面單整理</p></div></div><div class="flex shrink-0 items-center gap-3"><span class="text-xs font-medium text-slate-500" data-tool-count="2">2</span><i class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200 accordion-chevron"></i></div></summary><div class="accordion-content border-t border-slate-100 bg-slate-50/60 p-3 space-y-3"><a class="block bg-white hover:bg-cyan-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./package-matcher.html">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3">
 <div class="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center text-lg group-hover:scale-110 transition">
@@ -122,24 +128,24 @@
 </div>
 <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
 </div>
-</a></section>
+</a></div></details>
 <!-- 文件管理入口：通知数量需由授权后的服务端接口提供，未授权时不显示 -->
-<section aria-label="文件管理" class="space-y-3">
-  <div class="flex items-center gap-3 px-1 pt-2 pb-1">
-    <div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-folder-closed"></i></div>
-    <div><h2 class="text-base font-bold text-slate-800">文件管理</h2><p class="text-xs text-slate-500 mt-0.5">授权人员查看和管理已上传文件</p></div>
-  </div>
-  <a href="./admin.html" class="relative block bg-white hover:bg-sky-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" aria-label="文件管理中心">
-    <span id="file-notification-badge" class="hidden absolute -top-2 -right-2 min-w-[24px] h-6 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold items-center justify-center ring-2 ring-slate-100" aria-label="新文件数量"></span>
-    <div class="flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="w-10 h-10 shrink-0 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-folder-open"></i></div>
-        <div><h2 class="font-semibold text-slate-800 text-sm">文件管理中心</h2><p class="text-xs text-slate-500 mt-0.5">查看、下载、删除文件 · 授权人员专用</p></div>
-      </div>
-      <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
-    </div>
-  </a>
-</section></main>
+<details class="tool-accordion group rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"><summary aria-label="展开或收起工具分类" class="flex cursor-pointer select-none items-center justify-between gap-3 p-4 hover:bg-slate-50 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"><div class="flex items-center gap-3 min-w-0 flex-1">
+<div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-folder-closed"></i></div>
+<div><h2 class="text-base font-bold text-slate-800">文件管理</h2><p class="text-xs text-slate-500 mt-0.5">授权人员查看和管理已上传文件</p></div>
+</div><div class="flex shrink-0 items-center gap-3"><span class="text-xs font-medium text-slate-500" data-tool-count="1">1</span><i class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200 accordion-chevron"></i></div></summary><div class="accordion-content border-t border-slate-100 bg-slate-50/60 p-3 space-y-3">
+
+<a aria-label="文件管理中心" class="relative block bg-white hover:bg-sky-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./admin.html">
+<span aria-label="新文件数量" class="hidden absolute -top-2 -right-2 min-w-[24px] h-6 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold items-center justify-center ring-2 ring-slate-100" id="file-notification-badge"></span>
+<div class="flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 shrink-0 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-folder-open"></i></div>
+<div><h2 class="font-semibold text-slate-800 text-sm">文件管理中心</h2><p class="text-xs text-slate-500 mt-0.5">查看、下载、删除文件 · 授权人员专用</p></div>
+</div>
+<i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+</div>
+</a>
+</div></details></main>
 <footer class="text-center text-xs text-slate-400 mt-8">
         Powered by GitHub Pages &amp; Personal AI
     </footer>
@@ -203,6 +209,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         const translations = HOME_TRANSLATIONS[el.dataset.homeI18n];
         el.textContent = lang === 'zh-CN' ? ({'包裹面單 & ERP出庫單自動匹配合併工具':'包裹面单 & ERP出库单自动匹配合并工具','裝箱單號比對與報表生成工具':'装箱单号匹配与报表生成工具','倉庫到貨&打包裝箱':'仓库到货&打包装箱','天貓訂單處理':'天猫订单处理','天貓面單單號比對、文件合併與 Excel 資料轉換':'天猫面单单号比对、文件合并与 Excel 数据转换','倉庫發貨':'仓库发货','得物訂單處理':'得物订单处理'}[el.dataset.homeI18n] || toSimplified(el.dataset.homeI18n)) : lang === 'zh' || !translations ? el.dataset.homeI18n : translations[lang === 'en' ? 0 : 1];
       });
+      document.querySelectorAll('[data-tool-count]').forEach(el => { const n = el.dataset.toolCount; el.textContent = lang === 'en' ? `${n} tools` : lang === 'de' ? `${n} Tools` : lang === 'zh-CN' ? `${n} 个工具` : `${n} 個工具`; });
       document.title = lang === 'zh-CN' ? '我的工作工具箱' : lang === 'zh' ? '我的工作小工具箱' : lang === 'en' ? 'My Work Toolkit' : 'Meine Arbeitswerkzeuge';
     }
     document.querySelectorAll('h1, header p, main h2, main p').forEach(el => {
@@ -228,5 +235,12 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
     const initialLanguage = localStorage.getItem(LANGUAGE_KEY) || localStorage.getItem('warehouse_language') || localStorage.getItem('lp_pdf_language') || 'en';
     setLanguage(initialLanguage);
 </script>
-</body>
+<script>document.querySelectorAll('.tool-accordion').forEach(section => {
+  section.addEventListener('toggle', () => {
+    if (!section.open) return;
+    document.querySelectorAll('.tool-accordion').forEach(other => {
+      if (other !== section) other.open = false;
+    });
+  });
+});</script></body>
 </html>
