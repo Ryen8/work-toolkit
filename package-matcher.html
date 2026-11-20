@@ -392,8 +392,16 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
 
 
         function clearImportedPacking(){
-            if(!confirm(uiMatch('确定清空已导入的装箱资料？','Clear imported packing data?','Importierte Packdaten löschen?','確定清空已匯入的裝箱資料？'))) return;
-            boxes=[];activeBoxIndex=0;saveState();renderBoxes();
+            if(!confirm(uiMatch('确定清空已导入的装箱资料和单号对照表？','Clear imported packing data and order mapping?','Importierte Packdaten und Zuordnungstabelle löschen?','確定清空已匯入的裝箱資料與單號對照表？'))) return;
+            // Clear both imported Excel sources and all derived matching state.
+            boxes=[];activeBoxIndex=0;
+            lookupMap={};lookupCount=0;
+            document.getElementById('excel-upload').value='';
+            document.getElementById('file-name-display').textContent=uiMatch('点击选择或拖拽 Excel 文件 (.xlsx / .xls / .csv)','Click or drag an Excel file (.xlsx / .xls / .csv)','Excel-Datei auswählen oder hierher ziehen (.xlsx / .xls / .csv)','點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)');
+            const mappingStatus=document.getElementById('excel-status');
+            mappingStatus.textContent=uiMatch('尚未加载对照表','No mapping loaded','Keine Zuordnung geladen','尚未載入對照表');
+            mappingStatus.className='text-xs font-medium text-slate-400';
+            saveState();renderBoxes();
             document.getElementById('packing-upload').value='';
             document.getElementById('packing-file-name-display').textContent=uiMatch('点击选择或拖拽 Excel 文件 (.xlsx / .xls / .csv)','Click or drag an Excel file (.xlsx / .xls / .csv)','Excel-Datei auswählen oder hierher ziehen (.xlsx / .xls / .csv)','點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)');
             document.getElementById('packing-import-status').textContent=uiMatch('尚未导入','Not imported','Nicht importiert','尚未匯入');
