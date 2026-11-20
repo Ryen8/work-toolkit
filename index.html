@@ -122,7 +122,24 @@
 </div>
 <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
 </div>
-</a></section></main>
+</a></section>
+<!-- 文件管理入口：通知数量需由授权后的服务端接口提供，未授权时不显示 -->
+<section aria-label="文件管理" class="space-y-3">
+  <div class="flex items-center gap-3 px-1 pt-2 pb-1">
+    <div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center"><i class="fa-solid fa-folder-closed"></i></div>
+    <div><h2 class="text-base font-bold text-slate-800">文件管理</h2><p class="text-xs text-slate-500 mt-0.5">授权人员查看和管理已上传文件</p></div>
+  </div>
+  <a href="./admin.html" class="relative block bg-white hover:bg-sky-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" aria-label="文件管理中心">
+    <span id="file-notification-badge" class="hidden absolute -top-2 -right-2 min-w-[24px] h-6 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold items-center justify-center ring-2 ring-slate-100" aria-label="新文件数量"></span>
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 shrink-0 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-folder-open"></i></div>
+        <div><h2 class="font-semibold text-slate-800 text-sm">文件管理中心</h2><p class="text-xs text-slate-500 mt-0.5">查看、下载、删除文件 · 授权人员专用</p></div>
+      </div>
+      <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+    </div>
+  </a>
+</section></main>
 <footer class="text-center text-xs text-slate-400 mt-8">
         Powered by GitHub Pages &amp; Personal AI
     </footer>
@@ -135,6 +152,10 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
 
     const LANGUAGE_KEY = 'work_toolkit_language';
     const HOME_TRANSLATIONS = {
+      '文件管理': ['File Management', 'Dateiverwaltung'],
+      '授权人员查看和管理已上传文件': ['Authorized staff can manage uploaded files', 'Autorisierte Mitarbeitende verwalten hochgeladene Dateien'],
+      '文件管理中心': ['File Management Center', 'Dateiverwaltung'],
+      '查看、下载、删除文件 · 授权人员专用': ['View, download and delete files · Authorized staff only', 'Dateien ansehen, herunterladen und löschen · Nur für Berechtigte'],
       '倉庫到貨&打包裝箱': ['Warehouse Receiving & Packing', 'Wareneingang & Verpackung'],
       '收貨、商品掃描與打包裝箱': ['Receiving, product scanning and packing', 'Wareneingang, Produktscan und Verpackung'],
       '天貓訂單處理': ['Tmall Order Processing', 'Tmall-Auftragsbearbeitung'],
@@ -188,6 +209,22 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
       const text = el.textContent.trim();
       if (HOME_TRANSLATIONS[text]) el.dataset.homeI18n = text;
     });
+    // Future integration: call this ONLY with a count returned by an authenticated,
+    // server-authorized endpoint. Never expose private file metadata via a public API.
+    function setAuthorizedNewFileCount(count) {
+      const badge = document.getElementById('file-notification-badge');
+      if (!badge) return;
+      const n = Number(count);
+      if (!Number.isSafeInteger(n) || n <= 0) {
+        badge.classList.add('hidden');
+        badge.classList.remove('flex');
+        badge.textContent = '';
+        return;
+      }
+      badge.textContent = n > 99 ? '99+' : String(n);
+      badge.classList.remove('hidden');
+      badge.classList.add('flex');
+    }
     const initialLanguage = localStorage.getItem(LANGUAGE_KEY) || localStorage.getItem('warehouse_language') || localStorage.getItem('lp_pdf_language') || 'en';
     setLanguage(initialLanguage);
 </script>
