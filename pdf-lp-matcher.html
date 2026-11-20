@@ -58,26 +58,50 @@ function extractProductDetails(text){
 }
 function extractProductCodes(text){return extractProductDetails(text).map(p=>p.sku).filter(Boolean)}
 function normalizeProductName(name){return String(name||'').toLowerCase().normalize('NFKC').replace(/[^a-z0-9]+/g,' ').trim()}
-function productSortKey(products,catalog){
- if(!products.length)return '3|\uffff';
- const keys=products.map(p=>{
-   // Resolve a missing SKU via an exact barcode, or exact normalized name.
-   const resolved=p.sku || (p.barcode&&catalog.barcodes.get(p.barcode)) || (p.name&&catalog.names.get(normalizeProductName(p.name))) || '';
-   if(resolved)return '0|'+resolved.toUpperCase();
-   if(p.barcode)return '1|'+p.barcode;
-   if(p.name)return '2|'+normalizeProductName(p.name);
-   return '3|\uffff';
- });
- return keys.sort((a,b)=>a.localeCompare(b,'en',{numeric:true})).join(' | ');
-}
+// Build only unambiguous product identities. Conflicting SKU/barcode pairs are never merged.
 function productCatalog(packing){
- const barcodes=new Map(),names=new Map();
- for(const p of packing)for(const x of p.products||[]){
-   if(!x.sku)continue;
-   if(x.barcode&&!barcodes.has(x.barcode))barcodes.set(x.barcode,x.sku);
-   const n=normalizeProductName(x.name);if(n&&!names.has(n))names.set(n,x.sku);
+ const skuBars=new Map(),barSkus=new Map(),nameIds=new Map();
+ const add=(map,key,value)=>{if(!key||!value)return;if(!map.has(key))map.set(key,new Set());map.get(key).add(value)};
+ for(const page of packing)for(const p of page.products||[]){
+  const sku=(p.sku||'').trim().toUpperCase(),bar=(p.barcode||'').trim(),name=normalizeProductName(p.name);
+  add(skuBars,sku,bar);add(barSkus,bar,sku);
+  if(name){if(sku)add(nameIds,name,'S:'+sku);if(bar)add(nameIds,name,'B:'+bar)}
  }
- return {barcodes,names};
+ const unique=(map,key)=>{const v=map.get(key);return v&&v.size===1?[...v][0]:''};
+ const conflicts=new Set();
+ for(const [sku,bars] of skuBars)if(bars.size>1)conflicts.add('S:'+sku);
+ for(const [bar,skus] of barSkus)if(skus.size>1)conflicts.add('B:'+bar);
+ for(const [sku,bars] of skuBars)for(const bar of bars){if(conflicts.has('S:'+sku)||conflicts.has('B:'+bar)){conflicts.add('S:'+sku);conflicts.add('B:'+bar)}}
+ return {skuBars,barSkus,nameIds,unique,conflicts};
+}
+function resolveProduct(p,catalog){
+ const sku=(p.sku||'').trim().toUpperCase(),bar=(p.barcode||'').trim(),name=normalizeProductName(p.name);
+ if(!sku&&!bar&&!name)return {key:'Z|',state:'missing'};
+ const linkedSku=bar?catalog.unique(catalog.barSkus,bar):'';
+ const linkedBar=sku?catalog.unique(catalog.skuBars,sku):'';
+ const conflict=(sku&&catalog.conflicts.has('S:'+sku))||(bar&&catalog.conflicts.has('B:'+bar))||(sku&&bar&&((linkedSku&&linkedSku!==sku)||(linkedBar&&linkedBar!==bar)));
+ if(conflict)return {key:'X|'+sku+'|'+bar+'|'+name,state:'conflict'};
+ if(sku)return {key:'S|'+sku,state:'ok'};
+ if(bar){if(linkedSku&&!catalog.conflicts.has('S:'+linkedSku))return {key:'S|'+linkedSku,state:'ok'};return {key:'B|'+bar,state:'ok'}};
+ // Name-only records may be linked only if the name has exactly one unambiguous identity.
+ const ids=catalog.nameIds.get(name)||new Set();
+ const skus=new Set([...ids].filter(x=>x.startsWith('S:')).map(x=>x.slice(2)));
+ const bars=new Set([...ids].filter(x=>x.startsWith('B:')).map(x=>x.slice(2)));
+ if(skus.size===1){const s=[...skus][0];if(!catalog.conflicts.has('S:'+s))return {key:'S|'+s,state:'ok'}}
+ if(!skus.size&&bars.size===1){const b=[...bars][0];if(!catalog.conflicts.has('B:'+b))return {key:'B|'+b,state:'ok'}}
+ return {key:'N|'+name,state:'ok'};
+}
+function productSortKey(products,catalog,uniqueId){
+ const found=(products||[]).map(p=>resolveProduct(p,catalog));
+ if(!found.length||found.every(x=>x.state==='missing'))return 'Z|'+String(uniqueId).padStart(8,'0');
+ if(found.some(x=>x.state==='conflict'))return 'X|'+String(uniqueId).padStart(8,'0');
+ return found.filter(x=>x.state!=='missing').map(x=>x.key).sort((a,b)=>a.localeCompare(b,'en',{numeric:true})).join(' | ');
+}
+function productStatusText(status){const words={'商品信息不足':['商品資訊不足','Insufficient product data','Unzureichende Produktdaten'],'商品信息冲突':['商品資訊衝突','Product identity conflict','Produktdatenkonflikt']};if(!words[status])return tr(status);const i=uiLanguage==='en'?1:uiLanguage==='de'?2:0;return uiLanguage==='zh-CN'?status:words[status][i]}
+function productGroupState(products,catalog){
+ if(!products.length||products.every(p=>resolveProduct(p,catalog).state==='missing'))return '商品信息不足';
+ if(products.some(p=>resolveProduct(p,catalog).state==='conflict'))return '商品信息冲突';
+ return '已匹配';
 }
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function log(s){$('log').textContent+='\n'+s;$('log').scrollTop=$('log').scrollHeight}
@@ -106,7 +130,7 @@ for(const l of labels){
  if(available.length){
   const codes=[...new Set(available.flatMap(n=>packByPage.get(n).productCodes||[]))].sort((a,b)=>a.localeCompare(b,'en',{numeric:true}));
   const products=available.flatMap(n=>packByPage.get(n).products||[]);
-  groups.push({label:l, pages:available, codes, products, key:productSortKey(products,catalog)});
+  groups.push({label:l, pages:available, codes, products, key:productSortKey(products,catalog,l.page),productState:productGroupState(products,catalog)});
   available.forEach(n=>usedB.add(n));
   match++;
  }else rows.push({lp:l.lp||'未識別',a:l.page,b:'—',codes:[],products:[],status:'物流面單未匹配'});
@@ -117,7 +141,7 @@ const matchedRows=[];
 for(const g of groups){
  order.push({source:'a',page:g.label.page});separateA.push(g.label.page);
  for(const n of g.pages){order.push({source:'b',page:n});separateB.push(n)}
- matchedRows.push({lp:g.label.lp,a:g.label.page,b:g.pages.join(', '),codes:g.codes,products:g.products,status:'已匹配'});
+ matchedRows.push({lp:g.label.lp,a:g.label.page,b:g.pages.join(', '),codes:g.codes,products:g.products,status:g.productState});
 }
 const unmatchedLabelRows=rows.slice();
 rows.length=0;rows.push(...matchedRows,...unmatchedLabelRows);
@@ -128,7 +152,7 @@ for(const p of packing)if(!usedB.has(p.page)){order.push({source:'b',page:p.page
 context={a,b,order,separateA,separateB,rows,labels,packing,match,totalA:docA.numPages,totalB:docB.numPages,usedB:usedB.size};renderResult();$('download').disabled=false;$('downloadZip').disabled=false;$('verify').disabled=false;progress(100,formatStatus("finished",match,order.length));
 }catch(e){log(tr('錯誤：')+e.message);progress(0,tr('分析失敗：')+e.message)}finally{if(worker)await worker.terminate();$('analyze').disabled=false}}
 
-function renderResult(){if(!context)return;const {rows,match,totalA,totalB,usedB}=context;$('result').style.display='block';$('stats').innerHTML=[[totalA,'物流面單頁'],[totalB,'出庫單頁數'],[match,'成功配對組'],[totalA-match+totalB-usedB,'未匹配頁']].map(([v,k])=>`<div class="stat">${v}<span>${tr(k)}</span></div>`).join('');$('rows').innerHTML=rows.map(r=>`<tr><td>${r.lp==='未識別'?tr(r.lp):r.lp}</td><td>${r.a}</td><td>${r.b}</td><td>${escapeHtml((r.codes||[]).join(", ")||"—")}</td><td>${escapeHtml([...(new Set((r.products||[]).map(p=>p.name).filter(Boolean)))].join("; ")||"—")}</td><td>${escapeHtml([...(new Set((r.products||[]).map(p=>p.barcode).filter(Boolean)))].join(", ")||"—")}</td><td class="${r.status==='已匹配'?'good':'warn'}">${tr(r.status)}</td></tr>`).join('');$('warning').textContent=tr(' OCR 辨識可能受字體與掃描品質影響，請先核對表格中的 LP 號與頁碼，再匯出。').trim()}
+function renderResult(){if(!context)return;const {rows,match,totalA,totalB,usedB}=context;$('result').style.display='block';$('stats').innerHTML=[[totalA,'物流面單頁'],[totalB,'出庫單頁數'],[match,'成功配對組'],[totalA-match+totalB-usedB,'未匹配頁']].map(([v,k])=>`<div class="stat">${v}<span>${tr(k)}</span></div>`).join('');$('rows').innerHTML=rows.map(r=>`<tr><td>${r.lp==='未識別'?tr(r.lp):r.lp}</td><td>${r.a}</td><td>${r.b}</td><td>${escapeHtml((r.codes||[]).join(", ")||"—")}</td><td>${escapeHtml([...(new Set((r.products||[]).map(p=>p.name).filter(Boolean)))].join("; ")||"—")}</td><td>${escapeHtml([...(new Set((r.products||[]).map(p=>p.barcode).filter(Boolean)))].join(", ")||"—")}</td><td class="${r.status==='已匹配'?'good':'warn'}">${productStatusText(r.status)}</td></tr>`).join('');$('warning').textContent=tr(' OCR 辨識可能受字體與掃描品質影響，請先核對表格中的 LP 號與頁碼，再匯出。').trim()}
 
 
 // Validate page coverage, source mapping, LP matching, and page geometry.
