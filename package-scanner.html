@@ -83,22 +83,33 @@ button.error,.btn.danger{background:#dc2626;color:white}
 @media print{.toolkit-step-number{background:transparent!important;color:inherit!important} .card,.panel{box-shadow:none!important}}
 @media(max-width:600px){h1{font-size:22px!important}.card,.panel{padding:16px!important}}
 </style>
-</head>
+<style id="toolkit-nav-standard">
+/* Shared navigation standard, based on Package Scanner */
+.toolkit-nav{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;margin:0 0 20px!important;width:100%!important;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif!important}
+.toolkit-nav-left{display:flex!important;align-items:center!important;gap:8px!important}
+.toolkit-nav-globe{font-size:16px!important;line-height:1!important}
+.toolkit-nav-select,.toolkit-nav-back{box-sizing:border-box!important;min-height:38px!important;height:38px!important;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#fff!important;color:#334155!important;font-family:inherit!important;font-size:14px!important;font-weight:600!important;line-height:20px!important;box-shadow:none!important;text-decoration:none!important}
+.toolkit-nav-select{width:auto!important;min-width:102px!important;padding:7px 10px!important;cursor:pointer!important}
+.toolkit-nav-back{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;padding:8px 12px!important;white-space:nowrap!important;cursor:pointer!important}
+.toolkit-nav-back:hover{background:#f8fafc!important;border-color:#94a3b8!important}
+.toolkit-nav-select:focus-visible,.toolkit-nav-back:focus-visible{outline:2px solid #2563eb!important;outline-offset:2px!important}
+@media(max-width:420px){.toolkit-nav{gap:8px!important}.toolkit-nav-back{padding:8px 10px!important}}
+</style></head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-24">
 
     <!-- 與 PDF 工具一致的頂部導覽與標題 -->
     <div class="max-w-[920px] mx-auto px-4 pt-5 no-print">
-        <nav class="flex items-center justify-between gap-3 flex-wrap mb-5" aria-label="Tool navigation">
-            <div class="flex items-center gap-2">
-                <span aria-hidden="true">🌐</span>
+        <nav class="flex items-center justify-between gap-3 flex-wrap mb-5 toolkit-nav" aria-label="Tool navigation">
+            <div class="flex items-center gap-2 toolkit-nav-left">
+                <span aria-hidden="true" class="toolkit-nav-globe">🌐</span>
                 <label class="sr-only" for="language-select">Language / Sprache</label>
-                <select id="language-select" onchange="setLanguage(this.value)" aria-label="Language / Sprache" class="bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer">
+                <select id="language-select" onchange="setLanguage(this.value)" aria-label="Language / Sprache" class="bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer toolkit-nav-select">
                     <option value="zh">繁體中文</option><option value="zh-CN">简体中文</option>
                     <option value="en">English</option>
                     <option value="de">Deutsch</option>
                 </select>
             </div>
-            <a href="./index.html" id="back-to-tools" class="inline-flex items-center gap-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold" aria-label="返回工具列表" title="返回工具列表">← <span>返回工具列表</span></a>
+            <a href="./index.html" id="back-to-tools" class="inline-flex items-center gap-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold toolkit-nav-back" aria-label="返回工具列表" title="返回工具列表">← <span>返回工具列表</span></a>
         </nav>
         <div class="flex items-start justify-between gap-3 flex-wrap mb-5">
             <div>
