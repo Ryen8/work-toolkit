@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Parcel Receiving & Product Scanner</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<style>body{background:#f1f5f9;color:#172033}input,textarea,select{font-size:16px!important} .card{background:#fff;border:1px solid #dce4ef;border-radius:16px;padding:18px;margin-bottom:14px} .btn{border-radius:10px;padding:11px 14px;font-weight:650;font-size:14px} .primary{background:#2563eb;color:white}.dark{background:#1e293b;color:white}.soft{background:#e9eef7;color:#1e293b}.green{background:#059669;color:white}.field{border:1px solid #cbd5e1;border-radius:9px;padding:10px;width:100%;background:#fff}.label{font-size:12px;font-weight:700;color:#64748b;margin-bottom:5px;display:block}.muted{color:#64748b;font-size:12px}.row{display:flex;gap:10px;align-items:center}.hide{display:none!important}#reader{max-width:520px;margin:auto} .product{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-top:10px} .num{width:68px;text-align:center}button:disabled{opacity:.5} .photo{max-height:150px;object-fit:contain;border-radius:8px} .pill{background:#e0e7ff;color:#3730a3;padding:3px 8px;border-radius:20px;font-size:12px} </style>
+<style id="toolkit-unified-design">
+/* Shared visual standard: Warehouse Box Scanner. UI-only; exported reports untouched. */
+:root{--ui-bg:#f1f5f9;--ui-ink:#1e293b;--ui-muted:#64748b;--ui-border:#e2e8f0;--ui-primary:#2563eb;--ui-success:#059669;--ui-danger:#dc2626;--ui-card:#fff}
+html{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","Microsoft JhengHei",sans-serif}
+body{background-color:var(--ui-bg);color:var(--ui-ink);font-family:inherit;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1{font-size:25px!important;line-height:1.3!important;font-weight:700!important;color:#0f172a!important;letter-spacing:-.015em}
+h2,h3{font-size:17px!important;line-height:1.45!important;font-weight:700!important;color:var(--ui-ink)!important}
+p,.hint,.muted,.sub,small{line-height:1.6}
+small,.hint,.muted,.sub{color:var(--ui-muted)}
+.card,.panel,main>section:not(.hidden){border-radius:15px!important;border-color:var(--ui-border)!important;box-shadow:0 2px 8px #0f172a08!important}
+.card,.panel{padding:22px!important}
+.toolkit-step-number{display:inline-flex!important;align-items:center;justify-content:center;flex:none;vertical-align:middle;min-width:22px;height:22px;padding:0 5px;margin-right:8px;border-radius:9999px;background:#2563eb;color:#fff!important;font:700 12px/1 ui-sans-serif,system-ui,sans-serif!important}
+/* Normalize existing blue numbered pills in Tailwind-based tools */
+h2>span.bg-blue-600:first-child,h3>span.bg-blue-600:first-child{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:22px!important;height:22px!important;padding:0 5px!important;margin-right:8px!important;border-radius:9999px!important;background:#2563eb!important;color:#fff!important;font-size:12px!important;font-weight:700!important;line-height:1!important}
+button,.btn,[type=button],[type=submit]{font-family:inherit;font-size:14px;font-weight:650;border-radius:9px;line-height:1.4}
+button:not(:disabled),.btn{transition:background-color .15s,border-color .15s,box-shadow .15s}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,.drop:focus-visible,.upload:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+button:disabled{cursor:not-allowed;opacity:.6}
+input,select,textarea{font-family:inherit;border-radius:9px}
+label{line-height:1.45}
+table{font-size:13px}th{font-weight:700;color:#334155;background:#f8fafc}td,th{border-color:var(--ui-border)}
+/* Shared upload visual */
+.drop,.upload,.pdf-dropzone,.excel-dropzone{border-color:#cbd5e1!important;border-radius:12px!important;background:#f8fafc!important;transition:background-color .15s,border-color .15s}
+.drop:hover,.upload:hover,.pdf-dropzone:hover,.excel-dropzone:hover{border-color:#2563eb!important;background:#eff6ff!important}
+/* Shared action semantics, retaining each tool's existing behavior */
+button.secondary:not(.zipbtn),.btn.soft{background:#e2e8f0;color:#1e293b}
+button.good,.btn.green{background:#059669;color:white}
+button.error,.btn.danger{background:#dc2626;color:white}
+/* Avoid modifying print/export report layout */
+@media print{.toolkit-step-number{background:transparent!important;color:inherit!important} .card,.panel{box-shadow:none!important}}
+@media(max-width:600px){h1{font-size:22px!important}.card,.panel{padding:16px!important}}
+</style>
+<style id="toolkit-nav-standard">
+/* Shared navigation standard, based on Package Scanner */
+.toolkit-nav{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;margin:0 0 20px!important;width:100%!important;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif!important}
+.toolkit-nav-left{display:flex!important;align-items:center!important;gap:8px!important}
+.toolkit-nav-globe{font-size:16px!important;line-height:1!important}
+.toolkit-nav-select,.toolkit-nav-back{box-sizing:border-box!important;min-height:38px!important;height:38px!important;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#fff!important;color:#334155!important;font-family:inherit!important;font-size:14px!important;font-weight:600!important;line-height:20px!important;box-shadow:none!important;text-decoration:none!important}
+.toolkit-nav-select{width:auto!important;min-width:102px!important;padding:7px 10px!important;cursor:pointer!important}
+.toolkit-nav-back{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;padding:8px 12px!important;white-space:nowrap!important;cursor:pointer!important}
+.toolkit-nav-back:hover{background:#f8fafc!important;border-color:#94a3b8!important}
+.toolkit-nav-select:focus-visible,.toolkit-nav-back:focus-visible{outline:2px solid #2563eb!important;outline-offset:2px!important}
+@media(max-width:420px){.toolkit-nav{gap:8px!important}.toolkit-nav-back{padding:8px 10px!important}}
+</style></head>
+<body class="pb-16"><div class="max-w-4xl mx-auto px-4 pt-5">
+<nav class="row justify-between mb-5 toolkit-nav"><div class="row toolkit-nav-left"><span class="toolkit-nav-globe">🌐</span><select id="lang" class="field !w-auto toolkit-nav-select" onchange="changeLanguage(this.value)"><option value="en">English</option><option value="zh">繁體中文</option><option value="zh-CN">简体中文</option><option value="de">Deutsch</option></select></div><a href="./index.html" class="btn soft toolkit-nav-back" data-i="back">← Back to tools</a></nav>
+<header class="mb-5"><h1 class="text-2xl font-bold">📦 <span data-i="title">Parcel Receiving & Product Scanner</span></h1><p class="muted mt-2" data-i="subtitle">Photograph shipping labels, scan products, record quantities and export by sender and parcel.</p></header>
+<div class="card"><div class="row justify-between flex-wrap"><h2 class="font-bold" data-i="step1">1. Parcel / shipping label</h2><span id="boxBadge" class="pill">Box 1</span></div>
+<div class="row flex-wrap mt-4"><label for="parcelPhoto" class="btn primary cursor-pointer" data-i="parcelphoto">📷 Photograph shipping label</label><input id="parcelPhoto" type="file" accept="image/*" capture="environment" class="hide" onchange="handlePhoto(event,'parcel')"><span id="photoStatus" class="muted"></span></div>
+<div class="grid sm:grid-cols-2 gap-3 mt-3"><div><label class="label" data-i="sender">Sender name (required)</label><input id="sender" class="field" autocomplete="organization" placeholder="e.g. Sport Conrad GmbH" oninput="saveCurrent()" required></div><div><label class="label" data-i="tracking">Shipment / tracking number (optional)</label><input id="tracking" class="field" inputmode="text" placeholder="e.g. 00340434623608848579" oninput="saveCurrent()"></div></div>
+
+<img id="parcelPreview" class="photo mt-3 hide" alt="Shipping label preview"><div class="row flex-wrap mt-3"><button class="btn soft" onclick="clearParcelFields()" data-i="clearParcel">Clear parcel fields</button></div></div>
+<div class="card"><h2 class="font-bold" data-i="step2">2. Scan or enter products</h2><p class="muted mt-2" data-i="scanHint">Scan the product barcode to fill EAN/UPC automatically. Enter SKU manually; product name is optional.</p>
+<div class="row flex-wrap mt-3"><button class="btn primary" onclick="openScanner()" data-i="openCamera">📷 Scan barcode</button><button class="btn soft hide" id="stopCamera" onclick="closeScanner()" data-i="closeCamera">Stop camera</button></div><div id="readerWrap" class="hide mt-3"><div id="reader"></div></div>
+<div class="grid sm:grid-cols-2 gap-3 mt-3"><div><label class="label" data-i="sku">Product SKU</label><input id="sku" class="field" placeholder="153028-A027"></div><div><label class="label" data-i="ean">Barcode / EAN / UPC</label><input id="ean" class="field" inputmode="numeric" placeholder="5400520310095"></div></div>
+<div class="mt-3"><label class="label" data-i="productName">Product name</label><input id="productName" class="field" placeholder="Paragon 50 MD/LG RC"></div>
+<div class="grid grid-cols-2 gap-3 mt-3"><div><label class="label" data-i="quantity">Quantity</label><div class="row"><button class="btn soft" onclick="adjustDraft(-1)">−</button><input id="quantity" class="field num" type="number" min="1" step="1" value="1"><button class="btn soft" onclick="adjustDraft(1)">+</button></div></div><div class="flex items-end"><button class="btn green w-full" onclick="addProduct()" data-i="addProduct">+ Add product</button></div></div>
+<div class="row flex-wrap mt-3"><button class="btn soft" onclick="clearDraft()" data-i="clear">Clear fields</button></div><div id="scanStatus" class="muted mt-2"></div></div>
+<div class="card"><div class="row justify-between flex-wrap"><h2 class="font-bold" data-i="step3">3. Products in current box</h2><strong id="currentCount" class="pill">0 pcs</strong></div><div id="currentProducts" class="mt-3"></div><div class="row flex-wrap mt-4"><button class="btn primary" onclick="finishBox()" data-i="finish">✓ Finish box & start next</button><button class="btn soft" onclick="saveCurrent();notify('Saved')" data-i="save">Save progress</button></div></div>
+<div class="card"><div class="row justify-between flex-wrap"><h2 class="font-bold" data-i="step4">4. Received parcels (grouped by sender)</h2><strong id="totals" class="muted"></strong></div><div id="history" class="mt-3"></div></div>
+<div class="card"><h2 class="font-bold" data-i="step5">5. Export</h2><p class="muted mt-2" data-i="exportHelp">Excel includes a product detail sheet and a parcel summary sheet. ZIP also contains the shipping label photos.</p><div class="row flex-wrap mt-3"><button class="btn green" onclick="exportData(false)" data-i="excel">Export Excel (.xlsx)</button><button class="btn primary" onclick="exportData(true)" data-i="zip">Export Excel + photos (ZIP)</button><button id="cloudUploadBtn" class="btn primary" onclick="downloadAndUploadReceiving()" data-i="cloudUpload">☁ Upload to cloud</button><button class="btn soft" onclick="backupJSON()" data-i="backup">Backup data (JSON)</button><label class="btn soft cursor-pointer"><span data-i="restore">Restore backup</span><input type="file" accept="application/json,.json" class="hide" onchange="restoreJSON(event)"></label></div><div id="cloudUploadArea" class="hide mt-3 p-3 rounded-xl border border-slate-200 bg-slate-50"><p class="muted mb-2" data-i="cloudVerify">Complete the security check before uploading the Excel and photos ZIP.</p><div id="cloudTurnstile"></div><div class="row flex-wrap mt-3"><button id="cloudConfirmBtn" class="btn primary" onclick="confirmCloudUpload()" data-i="cloudConfirm">Confirm upload</button><button class="btn soft" onclick="closeCloudUpload()" data-i="cloudCancel">Cancel</button></div><p id="cloudUploadStatus" class="muted mt-2" role="status"></p></div><p class="muted mt-3" data-i="localNote">Data is saved in this browser. Use ZIP or JSON backups before clearing browser data or switching phones.</p><button class="text-red-600 text-xs mt-4 underline" onclick="clearAll()" data-i="reset">Delete all receiving records</button></div>
+<div id="toast" class="fixed bottom-4 left-4 right-4 mx-auto max-w-lg bg-slate-900 text-white p-3 rounded-xl shadow-lg hide" role="status"></div>
+</div>
+<script>
+const dict={en:{back:'← Back to tools',title:'Parcel Receiving & Product Scanner',subtitle:'Photograph shipping labels, scan products, record quantities and export by sender and parcel.',step1:'1. Parcel / shipping label',sender:'Sender name',tracking:'Shipment / tracking number',parcelphoto:'Shipping label photo',step2:'2. Scan or enter products',scanHint:'Scan the product barcode to fill EAN/UPC automatically. Enter SKU manually; product name is optional.',openCamera:'📷 Scan barcode',closeCamera:'Stop camera',sku:'Product SKU',ean:'Barcode / EAN / UPC',productName:'Product name',quantity:'Quantity',addProduct:'+ Add product',clear:'Clear fields',step3:'3. Products in current box',finish:'✓ Finish box & start next',save:'Save progress',step4:'4. Received parcels (grouped by sender)',step5:'5. Export',exportHelp:'Excel includes a product detail sheet and a parcel summary sheet. ZIP also contains the shipping label photos.',excel:'Export Excel (.xlsx)',zip:'Export Excel + photos (ZIP)',backup:'Backup data (JSON)',restore:'Restore backup',localNote:'Data is saved in this browser. Use ZIP or JSON backups before clearing browser data or switching phones.',reset:'Delete all receiving records'},zh:{back:'← 返回工具列表',title:'包裹收貨與商品掃描系統',subtitle:'拍攝包裹面單、掃描商品、記錄數量，依寄件人及包裹整理匯出。',step1:'1. 包裹與物流面單',sender:'寄件人名稱',tracking:'包裹單號／快遞單號',parcelphoto:'拍攝包裹面單',step2:'2. 掃描或輸入商品',scanHint:'掃描商品條碼自動填入 EAN/UPC；SKU 請手動填寫，產品名稱可選填。',openCamera:'📷 掃描條碼',closeCamera:'關閉相機',sku:'產品編號 SKU',ean:'產品條碼 EAN / UPC',productName:'產品名稱',quantity:'數量',addProduct:'+ 加入商品',clear:'清空輸入',step3:'3. 當前箱商品',finish:'✓ 結束這箱並開下一箱',save:'儲存進度',step4:'4. 收貨記錄（依寄件人分組）',step5:'5. 匯出報表',exportHelp:'Excel 包含商品明細與包裹彙總；ZIP 另外附上包裹面單照片。',excel:'匯出 Excel (.xlsx)',zip:'匯出 Excel + 照片 (ZIP)',backup:'備份資料 (JSON)',restore:'還原備份',localNote:'資料儲存在此瀏覽器，清除瀏覽器資料或更換手機前請先備份。',reset:'刪除全部收貨記錄'},de:{back:'← Zur Übersicht',title:'Wareneingang & Produktscanner',subtitle:'Paketetiketten fotografieren, Produkte scannen, Mengen erfassen und nach Absender sortieren.',step1:'1. Paket / Versandetikett',sender:'Absender',tracking:'Sendungsnummer',parcelphoto:'Foto des Versandetiketts',step2:'2. Produkte scannen oder eingeben',scanHint:'Produktbarcode scannen, um EAN/UPC automatisch auszufüllen. SKU manuell eingeben; Produktname optional.',openCamera:'📷 Barcode scannen',closeCamera:'Kamera schließen',sku:'Artikelnummer / SKU',ean:'Barcode / EAN / UPC',productName:'Produktname',quantity:'Menge',addProduct:'+ Produkt hinzufügen',clear:'Felder leeren',step3:'3. Produkte im aktuellen Karton',finish:'✓ Karton abschließen & nächsten öffnen',save:'Fortschritt speichern',step4:'4. Wareneingänge (nach Absender gruppiert)',step5:'5. Export',exportHelp:'Excel enthält Produktdetails und Paketübersicht. ZIP enthält zusätzlich die Versandetikettfotos.',excel:'Excel exportieren (.xlsx)',zip:'Excel + Fotos (ZIP)',backup:'Daten sichern (JSON)',restore:'Sicherung laden',localNote:'Daten werden lokal im Browser gespeichert. Vor Browserwechsel oder Löschen bitte sichern.',reset:'Alle Wareneingänge löschen'}};
+
+// Cloud upload: these are public configuration values only. Never insert a service-role key.
+const CLOUD_UPLOAD_ENDPOINT = 'https://arbkopmhwasqdcriuswz.supabase.co/functions/v1/upload-toolkit-file'; // HTTPS URL of the separately deployed upload Edge Function
+const TURNSTILE_SITE_KEY = '0x4AAAAAAGKRdcTMk3KV4fOr'; // Cloudflare Turnstile public site key
+let cloudWidgetId=null, cloudUploading=false, cloudPreparing=false, cloudPendingBlob=null, cloudPendingName='';
+function cloudMessage(code){const messages={
+ config:{'zh-CN':'云端上传尚未配置：需要上传接口地址和 Turnstile Site Key。','zh':'雲端上傳尚未設定：需要上傳介面網址和 Turnstile Site Key。',en:'Cloud upload is not configured: upload endpoint and Turnstile site key are required.',de:'Cloud-Upload ist noch nicht konfiguriert: Upload-Endpunkt und Turnstile Site Key fehlen.'},
+ empty:{'zh-CN':'没有可上传的收货记录。','zh':'沒有可上傳的收貨記錄。',en:'No receiving records to upload.',de:'Keine Wareneingänge zum Hochladen.'},
+ verify:{'zh-CN':'请先完成人机验证。','zh':'請先完成人機驗證。',en:'Please complete the security check.',de:'Bitte Sicherheitsprüfung abschließen.'},
+ uploading:{'zh-CN':'正在生成 ZIP 并上传，请勿关闭页面…','zh':'正在產生 ZIP 並上傳，請勿關閉頁面…',en:'Preparing ZIP and uploading. Keep this page open…',de:'ZIP wird erstellt und hochgeladen. Seite geöffnet lassen…'},
+ success:{'zh-CN':'上传成功！管理员可在文件管理中心查看。','zh':'上傳成功！管理員可在檔案管理中心查看。',en:'Upload successful. The administrator can find the file in File Management.',de:'Upload erfolgreich. Die Datei ist in der Dateiverwaltung verfügbar.'}
+ };return (messages[code]||{})[lang]||(messages[code]||{}).en||code}
+function closeCloudUpload(){if(cloudUploading)return;cloudPendingBlob=null;cloudPendingName='';$('cloudUploadArea').classList.add('hide');$('cloudUploadStatus').textContent=''}
+async function downloadAndUploadReceiving(){
+ if(cloudUploading||cloudPreparing)return;
+ saveCurrent();
+ if(!state.boxes.length&&!(state.current.products.length&&state.current.sender)){notify(cloudMessage('empty'));return}
+ cloudPreparing=true;$('cloudUploadBtn').disabled=true;
+ try{
+  // First create and download a local ZIP, even when cloud services are unavailable.
+  const blob=await buildReceivingZip();const name=localDate()+'-receiving.zip';
+  download(blob,name);
+  cloudPendingBlob=blob;cloudPendingName=name;
+  $('cloudUploadArea').classList.remove('hide');
+  if(!CLOUD_UPLOAD_ENDPOINT||!TURNSTILE_SITE_KEY){
+   $('cloudUploadStatus').textContent=cloudMessage('config');$('cloudConfirmBtn').disabled=true;
+  }else{
+   $('cloudConfirmBtn').disabled=false;
+   $('cloudUploadStatus').textContent='';
+   if(cloudWidgetId===null){
+    if(!window.turnstile){$('cloudUploadStatus').textContent='Turnstile unavailable. Reload this page.'}
+    else cloudWidgetId=turnstile.render('#cloudTurnstile',{sitekey:TURNSTILE_SITE_KEY});
+   }else if(window.turnstile){turnstile.reset(cloudWidgetId)}
+  }
+ }catch(e){notify(e.message||String(e))}
+ finally{cloudPreparing=false;$('cloudUploadBtn').disabled=false}
+}
+async function confirmCloudUpload(){if(cloudUploading||cloudPreparing)return;if(!cloudPendingBlob){$('cloudUploadStatus').textContent='Please download the ZIP first.';return}if(!CLOUD_UPLOAD_ENDPOINT||!TURNSTILE_SITE_KEY){$('cloudUploadStatus').textContent=cloudMessage('config');return}const token=window.turnstile&&cloudWidgetId!==null?turnstile.getResponse(cloudWidgetId):'';if(!token){$('cloudUploadStatus').textContent=cloudMessage('verify');return}cloudUploading=true;$('cloudConfirmBtn').disabled=true;$('cloudUploadBtn').disabled=true;$('cloudUploadStatus').textContent=cloudMessage('uploading');try{const data=new FormData();data.append('file',cloudPendingBlob,cloudPendingName);data.append('turnstileToken',token);data.append('tool','parcel-receiving');const response=await fetch(CLOUD_UPLOAD_ENDPOINT,{method:'POST',body:data,cache:'no-store'});let result={};try{result=await response.json()}catch{}if(!response.ok||result.success!==true)throw new Error(result.error||'Upload failed (HTTP '+response.status+')');$('cloudUploadStatus').textContent=cloudMessage('success');notify(cloudMessage('success'));cloudPendingBlob=null;cloudPendingName='';if(window.turnstile&&cloudWidgetId!==null)turnstile.reset(cloudWidgetId)}catch(e){$('cloudUploadStatus').textContent=e.message||String(e);if(window.turnstile&&cloudWidgetId!==null)turnstile.reset(cloudWidgetId)}finally{cloudUploading=false;$('cloudConfirmBtn').disabled=!CLOUD_UPLOAD_ENDPOINT||!TURNSTILE_SITE_KEY;$('cloudUploadBtn').disabled=false}}
+const ZH_CN_CHAR_MAP = {"並":"并","併":"并","來":"来","倉":"仓","個":"个","備":"备","傳":"传","僅":"仅","儲":"储","兩":"两","別":"别","刪":"删","動":"动","匯":"汇","區":"区","參":"参","啟":"启","單":"单","嗎":"吗","圖":"图","報":"报","塊":"块","夾":"夹","將":"将","專":"专","對":"对","導":"导","屬":"属","庫":"库","彙":"汇","後":"后","態":"态","應":"应","戶":"户","掃":"扫","換":"换","擇":"择","擊":"击","據":"据","攝":"摄","敗":"败","數":"数","斷":"断","於":"于","時":"时","會":"会","條":"条","槍":"枪","標":"标","樣":"样","機":"机","檔":"档","檢":"检","欄":"栏","權":"权","沒":"没","淺":"浅","準":"准","瀏":"浏","為":"为","無":"无","狀":"状","獨":"独","現":"现","產":"产","當":"当","確":"确","碼":"码","稱":"称","筆":"笔","籤":"签","約":"约","純":"纯","細":"细","終":"终","組":"组","結":"结","統":"统","經":"经","網":"网","線":"线","編":"编","總":"总","繼":"继","續":"续","與":"与","藍":"蓝","處":"处","號":"号","裝":"装","製":"制","複":"复","視":"视","覽":"览","訂":"订","計":"计","記":"记","設":"设","註":"注","試":"试","認":"认","誤":"误","請":"请","證":"证","識":"识","讀":"读","貨":"货","資":"资","質":"质","載":"载","輸":"输","這":"这","連":"连","進":"进","運":"运","過":"过","遞":"递","選":"选","遺":"遗","還":"还","鄰":"邻","錄":"录","錯":"错","鍵":"键","閉":"闭","開":"开","間":"间","關":"关","隱":"隐","響":"响","頁":"页","頂":"顶","順":"顺","預":"预","頭":"头","題":"题","驗":"验","驟":"骤","體":"体","點":"点"};
+const ZH_CN_PHRASES = {"汇出":"导出","下载":"下载","储存":"保存","档案":"文件","检查":"检查","对照":"对照","辨识":"识别","识别":"识别","条码":"条码","包裹单号":"包裹单号","快递单号":"快递单号","装箱":"装箱","扫描":"扫描","单号":"单号","资料":"数据","当前":"当前","出库单":"出库单","物流面单":"物流面单","配对":"匹配","未配对":"未匹配","匹配页":"匹配页","已配对":"已匹配","寄件人":"寄件人","报表":"报表","确认":"确认","数量":"数量","页码":"页码","页面":"页面","繁体中文":"繁体中文","货运":"货运","记录":"记录","点击":"点击","發货":"发货","仓库":"仓库","系统":"系统","重量":"重量","批量":"批量","产生":"生成","生成":"生成","备份":"备份","还原":"恢复","开启":"开启","关闭":"关闭","编号":"编号","标签":"标签","商品编码":"商品编码","名称":"名称","清空":"清空","汇总":"汇总"};
+function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_MAP[c] || c).join(''); for (const [a,b] of Object.entries(ZH_CN_PHRASES)) s = s.split(a).join(b); return s; }
+
+dict['zh-CN'] = Object.fromEntries(Object.entries(dict.zh).map(([k,v])=>[k,toSimplified(v)]));
+// Cloud translations must be added after the Simplified Chinese dictionary exists.
+Object.assign(dict.en,{cloudUpload:'⬇ Download & upload to cloud',cloudVerify:'ZIP downloaded to your device. Complete the security check to upload the same ZIP to cloud.',cloudConfirm:'Confirm upload',cloudCancel:'Cancel'});
+Object.assign(dict.zh,{cloudUpload:'⬇ 下載並上傳至雲端',cloudVerify:'ZIP 已下載至裝置。請完成人機驗證，再將同一檔案上傳雲端。',cloudConfirm:'確認上傳',cloudCancel:'取消'});
+Object.assign(dict['zh-CN'],{cloudUpload:'⬇ 下载并上传至云端',cloudVerify:'ZIP 已下载到电脑。请完成人机验证，再将同一文件上传云端。',cloudConfirm:'确认上传',cloudCancel:'取消'});
+Object.assign(dict.de,{cloudUpload:'⬇ Herunterladen & in Cloud hochladen',cloudVerify:'ZIP wurde lokal heruntergeladen. Bitte Sicherheitsprüfung abschließen, um dieselbe ZIP hochzuladen.',cloudConfirm:'Upload bestätigen',cloudCancel:'Abbrechen'});
+
+// Explicit form labels; keep these in sync across all four interface languages.
+Object.assign(dict.en,{sender:'Sender name (required)',tracking:'Shipment / tracking number (optional)',sku:'Product SKU (required)',ean:'Barcode / EAN / UPC (required)',productName:'Product name (optional)',parcelphoto:'📷 Photograph shipping label',clearParcel:'Clear parcel fields'});
+Object.assign(dict.zh, {sender:'寄件人名稱（必填）',tracking:'包裹單號／快遞單號（選填）',sku:'產品編號 SKU（必填）',ean:'產品條碼 EAN / UPC（必填）',productName:'產品名稱（選填）',parcelphoto:'📷 拍攝包裹面單',clearParcel:'清空包裹輸入'});
+Object.assign(dict['zh-CN'],{sender:'寄件人名称（必填）',tracking:'包裹单号／快递单号（选填）',sku:'产品编号 SKU（必填）',ean:'产品条码 EAN / UPC（必填）',productName:'产品名称（选填）',parcelphoto:'📷 拍摄包裹面单',clearParcel:'清空包裹输入'});
+Object.assign(dict.de,{sender:'Absender (Pflichtfeld)',tracking:'Sendungsnummer (optional)',sku:'Artikelnummer / SKU (Pflichtfeld)',ean:'Barcode / EAN / UPC (Pflichtfeld)',productName:'Produktname (optional)',parcelphoto:'📷 Versandetikett fotografieren',clearParcel:'Paketfelder leeren'});
+
+const $=id=>document.getElementById(id);const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);const key='parcel_receiving_v1';let lang=localStorage.getItem('work_toolkit_language')||'en';if(!dict[lang])lang='en';let state;try{state=JSON.parse(localStorage.getItem(key)||'null')}catch{}if(!state||!Array.isArray(state.boxes))state={boxes:[],current:{id:uid(),sender:'',tracking:'',photoId:'',products:[],createdAt:new Date().toISOString()}};if(!state.current)state.current={id:uid(),sender:'',tracking:'',photoId:'',products:[],createdAt:new Date().toISOString()};let scanner=null,scanActive=false,db=null;
+function notify(s){$('toast').textContent=s;$('toast').classList.remove('hide');setTimeout(()=>$('toast').classList.add('hide'),3300)}function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function persist(){try{localStorage.setItem(key,JSON.stringify(state))}catch(e){notify('Storage full: export a backup')}}function changeLanguage(l){lang=l;localStorage.setItem('work_toolkit_language',l);$('lang').value=l;document.documentElement.lang=l==='zh'?'zh-TW':l;document.querySelectorAll('[data-i]').forEach(e=>e.textContent=dict[l][e.dataset.i]);render()}
+function openDB(){return new Promise((resolve,reject)=>{let req=indexedDB.open('parcel_receiving_photos',1);req.onupgradeneeded=()=>req.result.createObjectStore('photos');req.onsuccess=()=>{db=req.result;resolve()};req.onerror=()=>reject(req.error)})}function putPhoto(id,blob){return new Promise((resolve,reject)=>{let tx=db.transaction('photos','readwrite');tx.objectStore('photos').put(blob,id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}function getPhoto(id){return new Promise((resolve,reject)=>{if(!id)return resolve(null);let tx=db.transaction('photos');let req=tx.objectStore('photos').get(id);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error)})}function clearPhotos(){return new Promise(resolve=>{let tx=db.transaction('photos','readwrite');tx.objectStore('photos').clear();tx.oncomplete=resolve;tx.onerror=resolve})}async function showPreview(id,el){let b=await getPhoto(id);if(!b){$(el).classList.add('hide');return}let url=URL.createObjectURL(b);$(el).src=url;$(el).classList.remove('hide');$(el).onload=()=>setTimeout(()=>URL.revokeObjectURL(url),5000)}
+async function handlePhoto(ev,type){let f=ev.target.files?.[0];if(!f)return;try{let id=uid();await putPhoto(id,f);if(type==='parcel'){state.current.photoId=id;$('photoStatus').textContent=f.name;showPreview(id,'parcelPreview')}persist()}catch(e){notify('Could not save photo: '+e.message)}}function saveCurrent(){state.current.sender=$('sender').value.trim();state.current.tracking=$('tracking').value.trim();persist()}
+function clearParcelFields(){if(state.current.photoId&&!confirm(lang==='zh-CN'?'清空包裹信息和面单照片？':lang==='zh'?'清空包裹資料與面單照片？':'Clear parcel fields and shipping label photo?'))return;state.current.sender='';state.current.tracking='';state.current.photoId='';$('sender').value='';$('tracking').value='';$('parcelPhoto').value='';$('photoStatus').textContent='';$('parcelPreview').classList.add('hide');persist()}
+function adjustDraft(delta){$('quantity').value=Math.max(1,(parseInt($('quantity').value)||1)+delta)}function clearDraft(){$('sku').value='';$('ean').value='';$('productName').value='';$('quantity').value=1;}
+function addProduct(){let sku=$('sku').value.trim(),ean=$('ean').value.replace(/\s+/g,''),name=$('productName').value.trim(),qty=Number($('quantity').value);if(!sku||!ean)return notify(lang==='zh-CN'?'请填写产品编号 SKU 和产品条码 EAN / UPC':lang==='zh'?'請填寫產品編號 SKU 與產品條碼 EAN / UPC':lang==='de'?'SKU und Barcode sind Pflichtfelder':'SKU and barcode are required');if(!Number.isInteger(qty)||qty<1)return notify('Invalid quantity');let p=state.current.products.find(p=>(ean&&p.ean===ean)||(sku&&p.sku===sku&&p.name.toLowerCase()===name.toLowerCase()));if(p){p.qty+=qty;}else state.current.products.push({id:uid(),sku,ean,name,qty,photoId:''});persist();clearDraft();render();notify(lang==='zh'?'商品已加入':'Product added')}
+function changeQty(id,v){let p=state.current.products.find(p=>p.id===id);if(!p)return;p.qty=Math.max(1,Math.floor(Number(v)||1));persist();render()}function removeProduct(id){state.current.products=state.current.products.filter(p=>p.id!==id);persist();render()}function editProduct(id){let p=state.current.products.find(p=>p.id===id);if(!p)return;$('sku').value=p.sku;$('ean').value=p.ean;$('productName').value=p.name;$('quantity').value=p.qty;removeProduct(id);window.scrollTo({top:380,behavior:'smooth'})}
+async function finishBox(){saveCurrent();if(!state.current.photoId){alert(lang==='zh-CN'?'请先拍摄包裹面单，面单照片为必填项，未拍摄不能结束当前箱。':lang==='zh'?'請先拍攝包裹面單，面單照片為必填項，未拍攝不能結束目前箱。':lang==='de'?'Bitte zuerst das Versandetikett fotografieren. Ohne Foto kann der Karton nicht abgeschlossen werden.':'Please photograph the shipping label first. A shipping label photo is required before finishing this box.');$('parcelPhoto').focus();return}try{if(!await getPhoto(state.current.photoId)){alert(lang==='zh-CN'?'未找到已保存的包裹面单照片，请重新拍摄后再结束这箱。':lang==='zh'?'找不到已儲存的包裹面單照片，請重新拍攝後再結束這箱。':lang==='de'?'Das gespeicherte Versandetikett wurde nicht gefunden. Bitte erneut fotografieren.':'Saved shipping label photo not found. Please take another photo.');return}}catch(e){alert(lang==='zh-CN'?'无法验证包裹面单照片，请重新拍摄后再试。':lang==='zh'?'無法驗證包裹面單照片，請重新拍攝後再試。':lang==='de'?'Versandetikett konnte nicht geprüft werden. Bitte erneut fotografieren.':'Could not verify shipping label photo. Please try taking it again.');return}if(!state.current.sender)return notify(lang==='zh-CN'?'请先填写寄件人名称':lang==='zh'?'請先填寫寄件人名稱':lang==='de'?'Bitte Absender eingeben':'Enter sender name');if(!state.current.products.length)return notify(lang==='zh'?'請先加入商品':'Add products first');let duplicate=!!state.current.tracking&&state.boxes.some(b=>b.tracking===state.current.tracking);if(duplicate&&!confirm('This tracking number already exists. Continue?'))return;state.current.finishedAt=new Date().toISOString();state.boxes.push(state.current);state.current={id:uid(),sender:state.current.sender,tracking:'',photoId:'',products:[],createdAt:new Date().toISOString()};persist();loadForm();render();window.scrollTo({top:0,behavior:'smooth'});notify(lang==='zh'?'已結束此箱，開始下一箱':'Box completed. Ready for next box')}
+function loadForm(){$('sender').value=state.current.sender;$('tracking').value=state.current.tracking;$('photoStatus').textContent=state.current.photoId?'Photo saved':'';showPreview(state.current.photoId,'parcelPreview')}
+function render(){let all=state.boxes.length+1;$('boxBadge').textContent=(lang==='zh'?'第 ':'Box ')+all+(lang==='zh'?' 箱':'');let sum=state.current.products.reduce((a,p)=>a+p.qty,0);$('currentCount').textContent=sum+' pcs';$('currentProducts').innerHTML=state.current.products.length?state.current.products.map(p=>`<div class="product"><div class="row justify-between"><div class="min-w-0"><b>${esc(p.name||p.sku||p.ean)}</b><div class="muted">SKU: ${esc(p.sku||'—')} · EAN: ${esc(p.ean||'—')}</div></div><button class="text-blue-600 text-sm" onclick="editProduct('${p.id}')">✎</button></div><div class="row mt-3"><button class="btn soft" onclick="changeQty('${p.id}',${p.qty-1})">−</button><input class="field num" type="number" min="1" value="${p.qty}" onchange="changeQty('${p.id}',this.value)"><button class="btn soft" onclick="changeQty('${p.id}',${p.qty+1})">+</button><button class="text-red-600 ml-auto" onclick="removeProduct('${p.id}')">✕</button></div></div>`).join(''):'<p class="muted">No products yet.</p>';
+let sorted=[...state.boxes].sort((a,b)=>a.sender.localeCompare(b.sender,undefined,{sensitivity:'base'})||a.createdAt.localeCompare(b.createdAt));let grouped=new Map();sorted.forEach(b=>{let k=b.sender.trim().toLocaleLowerCase();if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(b)});$('totals').textContent=state.boxes.length+' boxes · '+state.boxes.reduce((a,b)=>a+b.products.reduce((x,p)=>x+p.qty,0),0)+' pcs';$('history').innerHTML=[...grouped.values()].map(group=>`<div class="mb-4"><h3 class="font-bold text-indigo-800 mb-2">${esc(group[0].sender)} (${group.length})</h3>${group.map(b=>`<details class="border border-slate-200 rounded-lg mb-2 p-3"><summary class="cursor-pointer font-semibold">${esc(b.tracking)} · ${b.products.reduce((a,p)=>a+p.qty,0)} pcs</summary><div class="muted mt-2">${new Date(b.createdAt).toLocaleString()}</div>${b.products.map(p=>`<div class="text-sm mt-2">${esc(p.sku)} | ${esc(p.ean)} | ${esc(p.name)} × ${p.qty}</div>`).join('')}<button class="text-blue-600 text-xs mt-3 mr-4" onclick="reopenBox('${b.id}')">Edit / Reopen</button><button class="text-red-600 text-xs" onclick="deleteBox('${b.id}')">Delete</button></details>`).join('')}</div>`).join('')||'<p class="muted">No completed parcels yet.</p>'}
+function reopenBox(id){if(state.current.products.length||state.current.tracking||state.current.photoId){if(!confirm('Current unfinished box will be kept only if you finish it first. Continue and overwrite current draft?'))return}let idx=state.boxes.findIndex(b=>b.id===id);if(idx<0)return;state.current=state.boxes.splice(idx,1)[0];delete state.current.finishedAt;persist();loadForm();render();window.scrollTo({top:0,behavior:'smooth'})}function deleteBox(id){if(!confirm('Delete this parcel record?'))return;state.boxes=state.boxes.filter(b=>b.id!==id);persist();render()}
+async function openScanner(){if(scanActive)return;$('readerWrap').classList.remove('hide');$('stopCamera').classList.remove('hide');try{scanner=new Html5Qrcode('reader');scanActive=true;await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:250,height:140}},code=>{let cleaned=code.trim();$('ean').value=cleaned;$('scanStatus').textContent='Scanned: '+cleaned;closeScanner();$('sku').focus();},()=>{})}catch(e){notify('Camera unavailable. Use manual entry or HTTPS.');await closeScanner()}}async function closeScanner(){if(scanner){try{if(scanActive)await scanner.stop()}catch{}try{scanner.clear()}catch{}}scanner=null;scanActive=false;$('readerWrap').classList.add('hide');$('stopCamera').classList.add('hide')}
+function safePhotoPart(value){return String(value||'').trim().replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').replace(/\s+/g,' ').replace(/[. ]+$/g,'').slice(0,90)||'Unknown'}
+function shippingPhotoName(box,ordered){
+ const base=safePhotoPart(box.sender)+'_'+safePhotoPart(box.tracking);
+ const duplicates=ordered.filter(x=>x.photoId&&safePhotoPart(x.sender)===safePhotoPart(box.sender)&&safePhotoPart(x.tracking)===safePhotoPart(box.tracking));
+ return 'photos/'+base+(duplicates.length>1?'_'+safePhotoPart(box.id):'')+'.jpg';
+}
+function buildWorkbook(){
+ let ordered=[...state.boxes];
+ if(state.current.products.length&&state.current.sender)ordered.push({...state.current,finishedAt:''});
+ ordered.sort((a,b)=>a.sender.localeCompare(b.sender,undefined,{sensitivity:'base'})||a.createdAt.localeCompare(b.createdAt));
+ const detail=[],summaryMap=new Map();
+ ordered.forEach((b,i)=>{
+  b.products.forEach(p=>{
+   detail.push({'寄件人名称':b.sender,'箱号':i+1,'包裹单号':b.tracking,'包裹面单照片':b.photoId?shippingPhotoName(b,ordered):'','产品编号 (SKU)':p.sku,'产品条码号':p.ean,'产品名称':p.name,'数量':p.qty,'收货日期':b.createdAt.slice(0,10)});
+   // Group only by the original sender, SKU and barcode; never translate user-entered data.
+   const key=JSON.stringify([b.sender,p.sku,p.ean]);
+   if(!summaryMap.has(key))summaryMap.set(key,{'寄件人':b.sender,'产品编号 (SKU)':p.sku,'产品条码号':p.ean,'数量':0});
+   summaryMap.get(key)['数量']+=Number(p.qty)||0;
+  });
+ });
+ const summary=[...summaryMap.values()];
+ let wb=XLSX.utils.book_new();
+ let ws=XLSX.utils.json_to_sheet(detail,{header:['寄件人名称','箱号','包裹单号','包裹面单照片','产品编号 (SKU)','产品条码号','产品名称','数量','收货日期']});
+ let ss=XLSX.utils.json_to_sheet(summary,{header:['寄件人','产品编号 (SKU)','产品条码号','数量']});
+ ws['!cols']=[{wch:26},{wch:8},{wch:25},{wch:40},{wch:22},{wch:22},{wch:48},{wch:12},{wch:16}];
+ ss['!cols']=[{wch:28},{wch:26},{wch:26},{wch:12}];
+ XLSX.utils.book_append_sheet(wb,ws,'商品明细');
+ XLSX.utils.book_append_sheet(wb,ss,'包裹汇总');
+ return {wb,ordered};
+}
+function localDate(){let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+async function buildReceivingZip(){if(!window.XLSX||!window.JSZip)throw Error('Excel / ZIP library not loaded');saveCurrent();let {wb,ordered}=buildWorkbook();if(!ordered.length)throw Error('No parcels to export');let zip=new JSZip();zip.file(localDate()+'.xlsx',XLSX.write(wb,{bookType:'xlsx',type:'array'}));let photos=zip.folder('photos');for(let b of ordered){if(b.photoId){let blob=await getPhoto(b.photoId);if(blob)photos.file(shippingPhotoName(b,ordered).slice('photos/'.length),blob)}}return zip.generateAsync({type:'blob'})}
+async function exportData(withPhotos){if(!window.XLSX)return notify('Excel library not loaded');saveCurrent();let {wb,ordered}=buildWorkbook();if(!ordered.length)return notify('No parcels to export');if(!withPhotos){XLSX.writeFile(wb,localDate()+'.xlsx');return}try{download(await buildReceivingZip(),localDate()+'-receiving.zip')}catch(e){notify(e.message)}}
+function download(blob,name){let url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}async function backupJSON(){let photos={};let ids=new Set([...state.boxes,state.current].flatMap(b=>[b.photoId,...[]]).filter(Boolean));for(let id of ids){let blob=await getPhoto(id);if(blob)photos[id]=await new Promise(resolve=>{let r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(blob)})}download(new Blob([JSON.stringify({version:1,state,photos})],{type:'application/json'}),localDate()+'-receiving-backup.json')}
+async function restoreJSON(e){let file=e.target.files[0];if(!file)return;if(!confirm('Replace all current records with this backup?'))return;try{let obj=JSON.parse(await file.text());if(!obj.state?.boxes||!obj.state?.current)throw Error('Invalid backup');await clearPhotos();for(let [id,data] of Object.entries(obj.photos||{})){let blob=await(await fetch(data)).blob();await putPhoto(id,blob)}state=obj.state;persist();loadForm();render();notify('Backup restored')}catch(err){notify('Restore failed: '+err.message)}}async function clearAll(){if(!confirm('Permanently delete all records and photos in this browser?'))return;state={boxes:[],current:{id:uid(),sender:'',tracking:'',photoId:'',products:[],createdAt:new Date().toISOString()}};await clearPhotos();persist();loadForm();clearDraft();render()}
+(async()=>{try{await openDB()}catch(e){notify('Photo storage unavailable: '+e.message)}changeLanguage(lang);loadForm();render()})();
+</script><script id="toolkit-step-normalizer">
+/* Decorative step badges only. Reapplies after language changes without changing IDs or events. */
+(function(){
+  const symbols={'①':'1','②':'2','③':'3','④':'4','⑤':'5','⑥':'6','⑦':'7','⑧':'8','⑨':'9'};
+  let working=false;
+  function refresh(){
+    if(working)return;working=true;
+    try{
+      document.querySelectorAll('main h2,main h3,.card h2,.card h3,.panel h2,.panel h3').forEach(h=>{
+        if(h.querySelector(':scope > .toolkit-step-number'))return;
+        const node=Array.from(h.childNodes).find(n=>n.nodeType===3&&n.nodeValue.trim());
+        if(!node)return;
+        const t=node.nodeValue;
+        const m=t.match(/^(\s*)([①②③④⑤⑥⑦⑧⑨]|[1-9][.．、])\s*/);
+        if(!m)return;
+        const number=symbols[m[2]]||m[2][0];
+        const badge=document.createElement('span');badge.className='toolkit-step-number';badge.setAttribute('aria-hidden','true');badge.textContent=number;
+        node.nodeValue=t.slice(m[0].length);
+        h.insertBefore(badge,node);
+      });
+    }finally{working=false;}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
+  // Translation code can replace heading textContent; reapply number styling then.
+  const observer=new MutationObserver(mutations=>{
+    if(working)return;
+    if(mutations.some(m=>m.type==='characterData'||(m.type==='childList'&&Array.from(m.addedNodes).some(n=>n.nodeType===3))))refresh();
+  });
+  const start=()=>observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script>
+</body></html>
