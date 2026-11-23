@@ -992,22 +992,35 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                 let unmatchedCount = 0;
                 const boxFolder = zip.folder('boxes');
                 filledBoxes.forEach((box,index) => {
-                    const values = box.items.filter(item => item.matched && item.fulfillment &&
-                        !['查無對應單號','未上傳對照表'].includes(String(item.fulfillment)))
-                        .map(item => [String(item.fulfillment)]);
-                    unmatchedCount += box.items.length - values.length;
-                    const sheet = XLSX.utils.aoa_to_sheet([['系统履约单号'], ...values]);
-                    sheet['!cols'] = [{wch:28}];
-                    const book = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(book,sheet,'sheet1');
+                    const groups = {VO: [], DW: [], OTHER: []};
+                    box.items.forEach(item => {
+                        if (!item.matched || !item.fulfillment ||
+                            ['查無對應單號','未上傳對照表'].includes(String(item.fulfillment))) {
+                            unmatchedCount++;
+                            return;
+                        }
+                        const number = String(item.fulfillment).trim();
+                        if (/^SCP/i.test(number)) groups.VO.push([number]);
+                        else if (/^\d{18}$/.test(number)) groups.DW.push([number]);
+                        else groups.OTHER.push([number]);
+                    });
                     const boxName = String(box.name || `box${index+1}`).trim().replace(/\s+/g,'').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_');
                     const weightNumber = Number(box.weight);
                     const weight = box.weight !== '' && Number.isFinite(weightNumber) && weightNumber >= 0 ? String(weightNumber) : '未填重量';
-                    const base = `${boxName}-${weight}kg`;
-                    let filename = `${base}.xlsx`, suffix=2;
-                    while (usedNames.has(filename.toLowerCase())) filename=`${base}-${suffix++}.xlsx`;
-                    usedNames.add(filename.toLowerCase());
-                    boxFolder.file(filename,XLSX.write(book,{bookType:'xlsx',type:'array'}));
+                    // A mixed box produces separate VO and DW files. Unrecognized
+                    // matched numbers are kept in OTHER rather than silently lost.
+                    Object.entries(groups).forEach(([type, values]) => {
+                        if (!values.length) return;
+                        const sheet = XLSX.utils.aoa_to_sheet([['系统履约单号'], ...values]);
+                        sheet['!cols'] = [{wch:28}];
+                        const book = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(book,sheet,'sheet1');
+                        const base = `${boxName}-${weight}kg-${type}`;
+                        let filename = `${base}.xlsx`, suffix=2;
+                        while (usedNames.has(filename.toLowerCase())) filename=`${base}-${suffix++}.xlsx`;
+                        usedNames.add(filename.toLowerCase());
+                        boxFolder.file(filename,XLSX.write(book,{bookType:'xlsx',type:'array'}));
+                    });
                 });
                 // Render the exact existing report markup, without opening the print dialog.
                 const report = exportToPDF(true);
