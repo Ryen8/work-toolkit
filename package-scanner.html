@@ -243,6 +243,11 @@ button.error,.btn.danger{background:#dc2626;color:white}
                 <i class="fa-solid fa-file-zipper"></i> <span id="export-all-label" data-export-lang="button">导出装箱资料（Excel）</span>
             </button>
             <p id="export-all-description" data-export-lang="description" class="text-[11px] text-slate-500">打包人员导出箱号、重量和 LP 单号，交给负责人员在单号比对工具处理。</p>
+            <button id="export-cloud-btn" onclick="downloadAndUploadPackingData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up"></i><span id="export-cloud-label">下載並上傳至雲端</span>
+            </button>
+            <p id="export-cloud-hint" class="text-[11px] text-slate-500">下載相同的裝箱 Excel，並使用文件管理中心的已登入帳戶上傳至雲端（單檔上限 50 MB）。</p>
+            <div id="export-cloud-status" class="hidden rounded-lg px-3 py-2 text-xs font-medium" role="status" aria-live="polite"></div>
         </section>
 
     </main>
@@ -307,6 +312,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             if (lookupCount > 0) status.textContent = ({zh:`已載入 ${lookupCount} 筆對照資料`,en:`Loaded ${lookupCount} mapping records`,de:`${lookupCount} Zuordnungen geladen`,'zh-CN':`已加载 ${lookupCount} 条对照数据`})[lang];
             else status.textContent = t('尚未載入對照表');
             updateHeaderStats();
+            updateCloudLabels();
         }
 
         const PACK_LABEL = {
@@ -1030,25 +1036,90 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         }
 
 
-        function exportPackingData() {
-            if (!window.XLSX) { alert('Excel library unavailable / Excel 函数库未加载'); return; }
+        // The Excel data is generated once for both download and cloud upload.
+        function makePackingExcel() {
+            if (!window.XLSX) throw new Error('Excel library unavailable / Excel 函數庫未載入');
             const filled = boxes.filter(b => b.items && b.items.length);
-            if (!filled.length) { alert(message('尚無裝箱資料','No scanned parcels','Keine gescannten Pakete')); return; }
+            if (!filled.length) throw new Error(message('尚無裝箱資料','No scanned parcels','Keine gescannten Pakete'));
             const rows = [['箱号 (BOX)','箱重 (kg)','指定运单号 (MAIL NO.)','扫描时间']];
             filled.forEach(b => b.items.forEach((item,i) => rows.push([
                 String(b.name || ''), i === 0 && b.weight !== '' ? Number(b.weight) : '',
                 String(item.tracking || ''), String(item.time || '')
             ])));
-            const wb=XLSX.utils.book_new(), ws=XLSX.utils.aoa_to_sheet(rows);
-            ws['!cols']=[{wch:20},{wch:14},{wch:30},{wch:20}];
-            for(let r=1;r<rows.length;r++) {
-                const address=XLSX.utils.encode_cell({r,c:2});
-                if(ws[address]) { ws[address].t='s'; ws[address].v=rows[r][2]; }
+            const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows);
+            ws['!cols'] = [{wch:20},{wch:14},{wch:30},{wch:20}];
+            for (let r=1;r<rows.length;r++) {
+                const address = XLSX.utils.encode_cell({r,c:2});
+                if (ws[address]) { ws[address].t='s'; ws[address].v=rows[r][2]; }
             }
             XLSX.utils.book_append_sheet(wb,ws,'装箱资料');
             const d=new Date();
             const date=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
-            XLSX.writeFile(wb,`packing-data-${date}.xlsx`);
+            const filename=`packing-data-${date}.xlsx`;
+            const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+            return {filename,blob:new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})};
+        }
+        function downloadPackingExcel(blob,filename) {
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');a.href=url;a.download=filename;
+            document.body.appendChild(a);a.click();a.remove();
+            setTimeout(()=>URL.revokeObjectURL(url),60000);
+        }
+        function exportPackingData() {
+            try {const {filename,blob}=makePackingExcel();downloadPackingExcel(blob,filename)}
+            catch(err){alert(err.message)}
+        }
+        const CLOUD_TEXT = {
+            zh:['下載並上傳至雲端','下載裝箱 Excel，並透過文件管理中心的登入帳戶上傳至雲端（50 MB 上限）。','正在上傳至雲端…','本機下載已開始，雲端上傳成功。','本機下載已開始，但雲端上傳失敗：','請先在文件管理中心登入，再回到本頁重試。'],
+            'zh-CN':['下载并上传至云端','下载装箱 Excel，并通过文件管理中心的登录账户上传至云端（50 MB 上限）。','正在上传至云端…','本地下载已开始，云端上传成功。','本地下载已开始，但云端上传失败：','请先在文件管理中心登录，再返回本页重试。'],
+            en:['Download & upload to cloud','Download the packing Excel and upload it using your File Center session (50 MB limit).','Uploading to cloud…','Local download started; cloud upload succeeded.','Local download started, but cloud upload failed: ','Sign in to File Center first, then return here and retry.'],
+            de:['Herunterladen & in Cloud hochladen','Pack-Excel herunterladen und mit der Anmeldung der Dateiverwaltung hochladen (max. 50 MB).','Cloud-Upload läuft…','Lokaler Download gestartet; Cloud-Upload erfolgreich.','Lokaler Download gestartet, aber Cloud-Upload fehlgeschlagen: ','Bitte zuerst in der Dateiverwaltung anmelden und dann erneut versuchen.']
+        };
+        function updateCloudLabels(){
+            const labels=CLOUD_TEXT[currentLanguage]||CLOUD_TEXT.zh;
+            document.getElementById('export-cloud-label').textContent=labels[0];
+            document.getElementById('export-cloud-hint').textContent=labels[1];
+        }
+        function cloudStatus(text,isError=false){
+            const el=document.getElementById('export-cloud-status');
+            el.classList.remove('hidden','bg-red-50','text-red-700','bg-emerald-50','text-emerald-700');
+            el.classList.add(isError?'bg-red-50':'bg-emerald-50',isError?'text-red-700':'text-emerald-700');
+            el.textContent=text;
+        }
+        let cloudUploadBusy=false;
+        async function downloadAndUploadPackingData(){
+            if(cloudUploadBusy)return;
+            let payload;
+            try {payload=makePackingExcel();}
+            catch(err){cloudStatus(err.message,true);return;}
+            downloadPackingExcel(payload.blob,payload.filename);
+            const btn=document.getElementById('export-cloud-btn');
+            const labels=CLOUD_TEXT[currentLanguage]||CLOUD_TEXT.zh;
+            cloudUploadBusy=true;btn.disabled=true;cloudStatus(labels[2]);
+            try {
+                // Same GitHub Pages origin and Supabase project as admin.html.
+                // Supabase JS shares the existing authenticated session via localStorage.
+                const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+                const supabase=createClient('https://arbkopmhwasqdcriuswz.supabase.co','sb_publishable__z1c0Cct_1y0E-deI4yXtA_T2WM7-6u');
+                const {data:{session},error:sessionError}=await supabase.auth.getSession();
+                if(sessionError||!session?.access_token)throw new Error(labels[5]);
+                const file=new File([payload.blob],payload.filename,{type:payload.blob.type});
+                if(file.size>50*1024*1024)throw new Error('File exceeds 50 MB');
+                const response=await fetch('https://arbkopmhwasqdcriuswz.supabase.co/functions/v1/toolkit-staff-files',{
+                    method:'POST',cache:'no-store',
+                    headers:{'Authorization':`Bearer ${session.access_token}`,'apikey':'sb_publishable__z1c0Cct_1y0E-deI4yXtA_T2WM7-6u','Content-Type':'application/json'},
+                    body:JSON.stringify({action:'sign-upload',filename:file.name,size:file.size})
+                });
+                let result;
+                try{result=await response.json()}catch{throw new Error(`HTTP ${response.status}`)}
+                if(!response.ok||result?.success!==true||!result.path||!result.token)throw new Error(`${result?.error||'Upload authorization failed'} (HTTP ${response.status})`);
+                const {error}=await supabase.storage.from('work-toolkit-files').uploadToSignedUrl(result.path,result.token,file,{contentType:result.contentType||file.type,upsert:false});
+                if(error)throw error;
+                cloudStatus(labels[3]);
+            }catch(err){
+                console.error('Packing cloud upload failed:',err);
+                cloudStatus(labels[4]+(err?.message||String(err)),true);
+            }finally{cloudUploadBusy=false;btn.disabled=false;}
         }
 
         function message(zh, en, de) {
