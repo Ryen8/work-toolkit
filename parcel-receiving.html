@@ -79,10 +79,6 @@ const dict={en:{back:'← Back to tools',title:'Parcel Receiving & Product Scann
 const CLOUD_UPLOAD_ENDPOINT = 'https://arbkopmhwasqdcriuswz.supabase.co/functions/v1/upload-toolkit-file'; // HTTPS URL of the separately deployed upload Edge Function
 const TURNSTILE_SITE_KEY = '0x4AAAAAAGKRdcTMk3KV4fOr'; // Cloudflare Turnstile public site key
 let cloudWidgetId=null, cloudUploading=false, cloudPreparing=false, cloudPendingBlob=null, cloudPendingName='';
-Object.assign(dict.en,{cloudUpload:'⬇ Download & upload to cloud',cloudVerify:'ZIP downloaded to your device. Complete the security check to upload the same ZIP to cloud.',cloudConfirm:'Confirm upload',cloudCancel:'Cancel'});
-Object.assign(dict.zh,{cloudUpload:'⬇ 下載並上傳至雲端',cloudVerify:'ZIP 已下載至裝置。請完成人機驗證，再將同一檔案上傳雲端。',cloudConfirm:'確認上傳',cloudCancel:'取消'});
-Object.assign(dict['zh-CN'],{cloudUpload:'⬇ 下载并上传至云端',cloudVerify:'ZIP 已下载到电脑。请完成人机验证，再将同一文件上传云端。',cloudConfirm:'确认上传',cloudCancel:'取消'});
-Object.assign(dict.de,{cloudUpload:'⬇ Herunterladen & in Cloud hochladen',cloudVerify:'ZIP wurde lokal heruntergeladen. Bitte Sicherheitsprüfung abschließen, um dieselbe ZIP hochzuladen.',cloudConfirm:'Upload bestätigen',cloudCancel:'Abbrechen'});
 function cloudMessage(code){const messages={
  config:{'zh-CN':'云端上传尚未配置：需要上传接口地址和 Turnstile Site Key。','zh':'雲端上傳尚未設定：需要上傳介面網址和 Turnstile Site Key。',en:'Cloud upload is not configured: upload endpoint and Turnstile site key are required.',de:'Cloud-Upload ist noch nicht konfiguriert: Upload-Endpunkt und Turnstile Site Key fehlen.'},
  empty:{'zh-CN':'没有可上传的收货记录。','zh':'沒有可上傳的收貨記錄。',en:'No receiving records to upload.',de:'Keine Wareneingänge zum Hochladen.'},
@@ -121,6 +117,12 @@ const ZH_CN_PHRASES = {"汇出":"导出","下载":"下载","储存":"保存","�
 function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_MAP[c] || c).join(''); for (const [a,b] of Object.entries(ZH_CN_PHRASES)) s = s.split(a).join(b); return s; }
 
 dict['zh-CN'] = Object.fromEntries(Object.entries(dict.zh).map(([k,v])=>[k,toSimplified(v)]));
+// Cloud translations must be added after the Simplified Chinese dictionary exists.
+Object.assign(dict.en,{cloudUpload:'⬇ Download & upload to cloud',cloudVerify:'ZIP downloaded to your device. Complete the security check to upload the same ZIP to cloud.',cloudConfirm:'Confirm upload',cloudCancel:'Cancel'});
+Object.assign(dict.zh,{cloudUpload:'⬇ 下載並上傳至雲端',cloudVerify:'ZIP 已下載至裝置。請完成人機驗證，再將同一檔案上傳雲端。',cloudConfirm:'確認上傳',cloudCancel:'取消'});
+Object.assign(dict['zh-CN'],{cloudUpload:'⬇ 下载并上传至云端',cloudVerify:'ZIP 已下载到电脑。请完成人机验证，再将同一文件上传云端。',cloudConfirm:'确认上传',cloudCancel:'取消'});
+Object.assign(dict.de,{cloudUpload:'⬇ Herunterladen & in Cloud hochladen',cloudVerify:'ZIP wurde lokal heruntergeladen. Bitte Sicherheitsprüfung abschließen, um dieselbe ZIP hochzuladen.',cloudConfirm:'Upload bestätigen',cloudCancel:'Abbrechen'});
+
 // Explicit form labels; keep these in sync across all four interface languages.
 Object.assign(dict.en,{sender:'Sender name (required)',tracking:'Shipment / tracking number (optional)',sku:'Product SKU (required)',ean:'Barcode / EAN / UPC (required)',productName:'Product name (optional)',parcelphoto:'📷 Photograph shipping label',ocrParcel:'Read shipping label text (OCR)',ocrProduct:'Read product label (OCR)',productphoto:'📷 Product label photo (optional)',clearParcel:'Clear parcel fields'});
 Object.assign(dict.zh, {sender:'寄件人名稱（必填）',tracking:'包裹單號／快遞單號（選填）',sku:'產品編號 SKU（必填）',ean:'產品條碼 EAN / UPC（必填）',productName:'產品名稱（選填）',parcelphoto:'📷 拍攝包裹面單',ocrParcel:'識別包裹面單文字（OCR）',ocrProduct:'識別商品標籤（OCR）',productphoto:'📷 拍攝商品標籤（選填）',clearParcel:'清空包裹輸入'});
