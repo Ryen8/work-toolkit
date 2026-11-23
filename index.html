@@ -17,7 +17,7 @@
 .tool-accordion > summary:focus-visible { outline-offset: -3px; }
 @media (prefers-reduced-motion: reduce) { .accordion-chevron { transition: none !important; } }
 
-.staff-section > summary {list-style:none;}
+.staff-section > summary {list-style:none; min-height:92px; box-sizing:border-box;}
 .staff-section > summary::-webkit-details-marker {display:none;}
 .staff-section[open] .staff-chevron {transform:rotate(180deg);}
 .staff-chevron {transition:transform .2s;}
@@ -46,17 +46,20 @@
 </div>
 </header>
 <!-- 工具列表導覽 -->
-<main class="max-w-md mx-auto p-4 flex flex-col gap-4">
+<main class="max-w-md mx-auto p-4 flex flex-col gap-12">
 <section class="pt-1" aria-label="倉庫作業工具專區">
-<div class="flex items-center gap-2 mb-3 px-1"><i class="fa-solid fa-users text-emerald-600"></i><h2 class="text-base font-bold text-slate-800">倉庫作業工具專區</h2></div>
-<p class="text-xs text-slate-500 mb-3 px-1">收貨、商品掃描與發貨裝箱工具</p><details class="tool-accordion group rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"><summary aria-label="展开或收起工具分类" class="flex cursor-pointer select-none items-center justify-between gap-3 p-4 hover:bg-slate-50 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"><div class="flex items-center gap-3 min-w-0 flex-1"><div class="w-10 h-10 rounded-xl category-icon category-icon-1 flex items-center justify-center"><i class="fa-solid fa-warehouse"></i></div><div><h2 class="text-base font-bold text-slate-800">倉庫到貨&amp;發貨</h2><p class="text-xs text-slate-500 mt-0.5">收貨、商品掃描與打包裝箱</p></div></div><div class="flex shrink-0 items-center gap-3"><span class="text-xs font-medium text-slate-500" data-tool-count="2">2</span><i class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200 accordion-chevron"></i></div></summary><div class="accordion-content border-t border-slate-100 bg-slate-50/60 p-3 space-y-3"><a class="block bg-white hover:bg-amber-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./parcel-receiving.html">
+<details class="staff-section group rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+<summary class="flex cursor-pointer select-none items-center justify-between gap-3 p-4 hover:bg-slate-50 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500">
+<div class="flex items-center gap-3 min-w-0"><div class="w-10 h-10 rounded-xl category-icon category-icon-1 flex items-center justify-center"><i class="fa-solid fa-warehouse"></i></div><div><h2 class="text-base font-bold text-slate-800">倉庫作業工具專區</h2><p class="text-xs text-slate-500 mt-0.5">包裹與商品掃描及裝箱工具</p></div></div><div class="flex shrink-0 items-center gap-2"><span class="text-xs font-medium text-slate-500" data-tool-count="2">2</span><i class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200 staff-chevron"></i></div>
+</summary>
+<div class="accordion-content border-t border-slate-100 bg-slate-50/60 p-3 space-y-3"><a class="block bg-white hover:bg-amber-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./parcel-receiving.html">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3">
 <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
 <i class="fa-solid fa-box-open"></i>
 </div>
 <div>
-<h2 class="font-semibold text-slate-800 text-sm">到貨包裹商品掃描工具</h2>
+<h2 class="font-semibold text-slate-800 text-sm">包裹&商品掃描</h2>
 <p class="text-xs text-slate-500 mt-0.5">拍攝面單、掃描商品、分箱收貨與 Excel 匯出</p>
 </div>
 </div>
@@ -79,7 +82,7 @@
 </section>
 <details class="staff-section group rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 <summary class="flex cursor-pointer select-none items-center justify-between gap-3 p-4 hover:bg-slate-50 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500">
-<div class="flex items-center gap-3 min-w-0"><div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-briefcase"></i></div><div><h2 class="text-base font-bold text-slate-800">辦公室與營運工具專區</h2><p class="text-xs text-slate-500 mt-0.5">訂單處理、發貨報表與文件管理 · 點擊展開</p></div></div><i class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200 staff-chevron"></i>
+<div class="flex items-center gap-3 min-w-0"><div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-briefcase"></i></div><div><h2 class="text-base font-bold text-slate-800">辦公室與營運工具專區</h2><p class="text-xs text-slate-500 mt-0.5">僅供辦公室與營運人員使用 · 點擊展開</p></div></div><div class="flex shrink-0 items-center gap-2"><span id="office-file-notification-badge" aria-label="新上传文件数量" class="hidden min-w-[23px] h-[23px] px-1.5 rounded-full bg-red-500 text-white text-xs font-bold items-center justify-center" title="新上传文件"></span><i class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200 staff-chevron"></i></div>
 </summary>
 <div class="border-t border-slate-100 bg-slate-50/60 p-3 flex flex-col gap-4">
 <details class="tool-accordion group rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"><summary aria-label="展开或收起工具分类" class="flex cursor-pointer select-none items-center justify-between gap-3 p-4 hover:bg-slate-50 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"><div class="flex items-center gap-3 min-w-0 flex-1"><div class="w-10 h-10 rounded-xl category-icon category-icon-2 flex items-center justify-center"><i class="fa-solid fa-list-check"></i></div><div><h2 class="text-base font-bold text-slate-800">天貓訂單處理</h2><p class="text-xs text-slate-500 mt-0.5">天貓面單單號比對、文件合併與 Excel 資料轉換</p></div></div><div class="flex shrink-0 items-center gap-3"><span class="text-xs font-medium text-slate-500" data-tool-count="3">3</span><i class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200 accordion-chevron"></i></div></summary><div class="accordion-content border-t border-slate-100 bg-slate-50/60 p-3 space-y-3"><a class="block bg-white hover:bg-indigo-50/50 border border-slate-200 rounded-2xl p-4 shadow-sm transition active:scale-[0.99] group" href="./vo-to-erp.html">
@@ -170,9 +173,10 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
     const LANGUAGE_KEY = 'work_toolkit_language';
     const HOME_TRANSLATIONS = {
       '倉庫作業工具專區': ['Warehouse Staff Tools', 'Werkzeuge für Lagermitarbeitende'],
+       '包裹與商品掃描及裝箱工具': ['Parcel & Item Scanning and Packing Tools', 'Tools zum Scannen von Paketen und Artikeln sowie zum Verpacken'],
        '收貨、商品掃描與發貨裝箱工具': ['Tools for receiving goods and packing shipments', 'Diese Tools für Wareneingang, Scannen und Verpacken verwenden'],
        '辦公室與營運工具專區': ['Office & Operations Tools', 'Büro- und Verwaltungstools'],
-       '訂單處理、發貨報表與文件管理 · 點擊展開': ['Order processing, shipping reports and file management · Click to expand', 'Aufträge, Versandberichte und Dateien · Zum Öffnen klicken'],
+       '僅供辦公室與營運人員使用 · 點擊展開': ['Order processing, shipping reports and file management · Click to expand', 'Aufträge, Versandberichte und Dateien · Zum Öffnen klicken'],
        '文件管理': ['File Management', 'Dateiverwaltung'],
       '授权人员查看和管理已上传文件': ['Authorized staff can manage uploaded files', 'Autorisierte Mitarbeitende verwalten hochgeladene Dateien'],
       '文件管理中心': ['File Management Center', 'Dateiverwaltung'],
@@ -201,8 +205,8 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
       'LP 單號比對、PDF 頁面配對與合併匯出': ['Match LP numbers, sort PDF pages & export', 'LP-Nummern abgleichen, PDF-Seiten sortieren & exportieren'],
       'DHL快遞單號 & 預約單面單匹配排序工具': ['DHL Shipment & Appointment Label Matcher', 'DHL-Sendungsnummern & Terminbelege abgleichen und sortieren'],
       '批量比對 Sendungsnummer，依 SHIPMENT_LABEL 順序合併 PDF': ['Batch match tracking numbers and merge PDFs in SHIPMENT_LABEL order', 'Sendungsnummern stapelweise abgleichen und PDFs nach SHIPMENT_LABEL sortieren'],
-      '到貨包裹商品掃描工具': ['Incoming Parcel & Product Scanner', 'Wareneingang: Paket- & Produktscanner'],
-      '拍攝面單、掃描商品、分箱收貨與 Excel 匯出': ['Scan incoming parcels and products, then export to Excel', 'Versandetiketten fotografieren, Produkte scannen, Kartons erfassen & Excel exportieren'],
+      '包裹&商品掃描': ['Parcel & Product Scanner', 'Paket- & Produktscanner'],
+      '拍攝面單、掃描商品、分箱收貨與 Excel 匯出': ['Scan parcels and products, then export to Excel.', 'Versandetiketten fotografieren, Produkte scannen, Kartons erfassen & Excel exportieren'],
       '包裹面單 & ERP出庫單自動匹配合併工具': ['Parcel Label & ERP Dispatch Document Matcher', 'Paketetiketten und ERP-Ausgangsbelege automatisch abgleichen und zusammenführen'],
       'VO 訂單明細轉 ERP Angebot 工具': ['VO Orders to ERP Angebot Converter', 'VO-Bestellungen in ERP-Angebot umwandeln'],
       '將 VO 訂單 Excel 一鍵轉換為 ERP Angebot 匯入格式': ['Convert VO order Excel to ERP Angebot import format', 'VO-Bestell-Excel in das ERP-Angebot-Importformat umwandeln'],
@@ -235,18 +239,20 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
     // Future integration: call this ONLY with a count returned by an authenticated,
     // server-authorized endpoint. Never expose private file metadata via a public API.
     function setAuthorizedNewFileCount(count) {
-      const badge = document.getElementById('file-notification-badge');
-      if (!badge) return;
+      const badges = ['file-notification-badge', 'office-file-notification-badge']
+        .map(id => document.getElementById(id)).filter(Boolean);
       const n = Number(count);
-      if (!Number.isSafeInteger(n) || n <= 0) {
-        badge.classList.add('hidden');
-        badge.classList.remove('flex');
-        badge.textContent = '';
-        return;
-      }
-      badge.textContent = n > 99 ? '99+' : String(n);
-      badge.classList.remove('hidden');
-      badge.classList.add('flex');
+      badges.forEach(badge => {
+        if (!Number.isSafeInteger(n) || n <= 0) {
+          badge.classList.add('hidden');
+          badge.classList.remove('flex');
+          badge.textContent = '';
+        } else {
+          badge.textContent = n > 99 ? '99+' : String(n);
+          badge.classList.remove('hidden');
+          badge.classList.add('flex');
+        }
+      });
     }
     const initialLanguage = localStorage.getItem(LANGUAGE_KEY) || localStorage.getItem('warehouse_language') || localStorage.getItem('lp_pdf_language') || 'en';
     setLanguage(initialLanguage);
