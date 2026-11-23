@@ -929,11 +929,14 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             if(!lookupCount) { alert(uiMatch('请先上传单号对照表','Upload the mapping Excel first','Bitte Zuordnungs-Excel hochladen','請先上傳單號對照表')); return; }
             const unmatched=boxes.flatMap(b=>b.items).filter(i=>!i.matched);
             if(unmatched.length) {
-                alert(uiMatch(`仍有 ${unmatched.length} 个 LP 单号未匹配，无法生成最终 VO 报表。请检查对照表。`,
-                    `${unmatched.length} LP numbers are unmatched. Resolve them before final VO export.`,
-                    `${unmatched.length} LP-Nummern sind nicht zugeordnet. Bitte vor dem VO-Export prüfen.`,
-                    `仍有 ${unmatched.length} 個 LP 單號未匹配，請先檢查對照表。`));
-                return;
+                const matched=count-unmatched.length;
+                const warning=uiMatch(
+                    `⚠️ 单号匹配未完成\n装箱总数：${count} 件\n成功匹配：${matched} 件\n未匹配：${unmatched.length} 件\n\n未匹配的记录会保留在 Excel 总表及 PDF 中，但不会写入各箱的 VO Excel。\n\n是否仍然下载全部报表（ZIP）？`,
+                    `⚠️ Matching incomplete\nTotal: ${count}\nMatched: ${matched}\nUnmatched: ${unmatched.length}\n\nUnmatched records remain in the Excel summary and PDF, but are excluded from per-box VO Excel files.\n\nDownload all reports (ZIP) anyway?`,
+                    `⚠️ Abgleich unvollständig\nGesamt: ${count}\nZugeordnet: ${matched}\nNicht zugeordnet: ${unmatched.length}\n\nNicht zugeordnete Einträge bleiben in Excel-Gesamtübersicht und PDF, werden aber aus den VO-Excel-Dateien je Karton ausgeschlossen.\n\nZIP trotzdem herunterladen?`,
+                    `⚠️ 單號匹配未完成\n裝箱總數：${count} 件\n成功匹配：${matched} 件\n未匹配：${unmatched.length} 件\n\n未匹配記錄會保留在 Excel 總表及 PDF 中，但不會寫入各箱的 VO Excel。\n\n是否仍然下載全部報表（ZIP）？`
+                );
+                if(!confirm(warning))return;
             }
             await exportAllReportsZip();
         }
@@ -1006,12 +1009,6 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                     usedNames.add(filename.toLowerCase());
                     boxFolder.file(filename,XLSX.write(book,{bookType:'xlsx',type:'array'}));
                 });
-                if (unmatchedCount && !confirm(message(
-                    `有 ${unmatchedCount} 筆未匹配單號，分箱 Excel 將略過這些資料（總表及 PDF 仍保留）。繼續嗎？`,
-                    `${unmatchedCount} unmatched records will be omitted from box Excel files (but retained in the summary and PDF). Continue?`,
-                    `${unmatchedCount} nicht zugeordnete Einträge werden in Karton-Excel-Dateien ausgelassen (in Gesamtbericht und PDF bleiben sie erhalten). Fortfahren?`
-                ))) return;
-
                 // Render the exact existing report markup, without opening the print dialog.
                 const report = exportToPDF(true);
                 temporary = document.createElement('div');
