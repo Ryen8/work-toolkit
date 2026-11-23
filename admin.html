@@ -58,7 +58,13 @@ document.body.append(link);
 link.click();
 link.remove();
 status('fileStatus',t('opened'))}catch(e){status('fileStatus',e.message,true)}finally{download.disabled=false}});const del=document.createElement('button');del.textContent=t('delete');del.className='danger small';del.style.marginLeft='7px';del.addEventListener('click',async()=>{if(!confirm(t('confirm',f.path)))return;del.disabled=true;download.disabled=true;status('fileStatus',t('deleting'));try{await request('delete',f.path);status('fileStatus',t('deleted'));await refreshAfterDelete()}catch(e){status('fileStatus',e.message,true);del.disabled=false;download.disabled=false}});action.append(download,del);frag.append(tr)}$('fileRows').append(frag)}
-async function refresh(){if(busy)return;busy=true;buttonBusy('refreshBtn',true);status('fileStatus',t('loading'));$('fileRows').replaceChildren();$('empty').classList.add('hidden');$('fileCount').textContent='';try{const data=await request('list');const files=Array.isArray(data.files)?data.files:[];files.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));lastFiles=files;renderFiles(files);status('fileStatus','')}catch(e){status('fileStatus',e.message,true)}finally{busy=false;buttonBusy('refreshBtn',false)}}
+async function refresh(){if(busy)return;busy=true;buttonBusy('refreshBtn',true);status('fileStatus',t('loading'));$('fileRows').replaceChildren();$('empty').classList.add('hidden');$('fileCount').textContent='';try{const data=await request('list');const files=Array.isArray(data.files)?data.files:[];files.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));lastFiles=files;renderFiles(files);
+// Mark currently visible files as seen for this signed-in admin in this browser.
+// This does not alter server permissions or file data.
+try { const {data:{session}}=await supabase.auth.getSession();
+  if(session?.user?.id) localStorage.setItem('liwus-admin-seen-files:'+session.user.id,JSON.stringify(files.map(f=>f.path).filter(Boolean)));
+} catch(e) { console.warn('Could not update file read state',e); }
+status('fileStatus','')}catch(e){status('fileStatus',e.message,true)}finally{busy=false;buttonBusy('refreshBtn',false)}}
 async function refreshAfterDelete(){busy=false;await refresh()}
 $('sendForm').addEventListener('submit',async e=>{e.preventDefault();buttonBusy('sendBtn',true);status('loginStatus',t('sending'));try{const email=$('email').value.trim();const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:window.location.origin+window.location.pathname}});if(error)throw error;status('loginStatus',t('sent'))}catch(err){status('loginStatus',err.message,true)}finally{buttonBusy('sendBtn',false)}});
 $('refreshBtn').addEventListener('click',refresh);

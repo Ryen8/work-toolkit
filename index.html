@@ -232,5 +232,28 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
     const initialLanguage = localStorage.getItem(LANGUAGE_KEY) || localStorage.getItem('warehouse_language') || localStorage.getItem('lp_pdf_language') || 'en';
     setLanguage(initialLanguage);
 </script>
+<script type="module" id="admin-file-badge-sync">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+// Badge visible only when the visitor already has an authenticated admin session.
+const client = createClient('https://arbkopmhwasqdcriuswz.supabase.co','sb_publishable__z1c0Cct_1y0E-deI4yXtA_T2WM7-6u', {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const endpoint='https://arbkopmhwasqdcriuswz.supabase.co/functions/v1/manage-toolkit-files';
+async function refreshFileBadge(){
+  try {
+    const {data:{session}}=await client.auth.getSession();
+    if(!session?.access_token){setAuthorizedNewFileCount(0);return;}
+    const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':'sb_publishable__z1c0Cct_1y0E-deI4yXtA_T2WM7-6u'},body:JSON.stringify({action:'list'}),cache:'no-store'});
+    if(!response.ok){setAuthorizedNewFileCount(0);return;}
+    const data=await response.json();
+    if(data?.success!==true||!Array.isArray(data.files)){setAuthorizedNewFileCount(0);return;}
+    const readKey='liwus-admin-seen-files:'+session.user.id;
+    const seen=new Set(JSON.parse(localStorage.getItem(readKey)||'[]'));
+    const unread=data.files.filter(f=>f.path&&!seen.has(f.path)).length;
+    setAuthorizedNewFileCount(unread);
+  }catch(e){setAuthorizedNewFileCount(0);console.warn('File badge unavailable:',e);}
+}
+refreshFileBadge();
+window.addEventListener('focus',refreshFileBadge);
+window.addEventListener('pageshow',refreshFileBadge);
+</script>
 </body>
 </html>
