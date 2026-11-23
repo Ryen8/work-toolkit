@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>仓库装箱扫描系统</title>
+    <title>發貨分裝箱掃描工具</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
@@ -113,8 +113,8 @@ button.error,.btn.danger{background:#dc2626;color:white}
         </nav>
         <div class="flex items-start justify-between gap-3 flex-wrap mb-5">
             <div>
-                <h1 class="text-2xl sm:text-[25px] font-bold text-slate-900 leading-tight"><span aria-hidden="true">📦 </span><span>裝箱掃描系統</span></h1>
-                <p class="text-sm text-slate-500 mt-2">Warehouse Box Scanner</p>
+                <h1 class="text-2xl sm:text-[25px] font-bold text-slate-900 leading-tight"><span aria-hidden="true">📦 </span><span>發貨分裝箱掃描工具</span></h1>
+                <p id="toolkit-page-subtitle" class="text-sm text-slate-500 mt-2">掃描 LP 單號、分箱管理與裝箱資料 Excel 匯出</p>
             </div>
             <span id="header-stats" class="bg-white border border-slate-200 text-xs px-3 py-2 rounded-lg font-semibold text-blue-700">0 箱 / 0 件</span>
         </div>
@@ -306,7 +306,15 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             const back = document.getElementById("back-to-tools");
             back.title = t("返回工具列表");
             back.setAttribute("aria-label", t("返回工具列表"));
-            document.querySelector('h1 span:last-child').textContent = ({zh:'裝箱掃描系統','zh-CN':'装箱扫描系统',en:'Packing Scanner',de:'Packscanner'})[lang];
+            const toolkitNames = {
+                zh:['發貨分裝箱掃描工具','掃描 LP 單號、分箱管理與裝箱資料 Excel 匯出'],
+                'zh-CN':['发货分装箱扫描工具','扫描 LP 单号、分箱管理与装箱资料 Excel 导出'],
+                en:['Shipment Packing & Box Scanner','Scan LP numbers, assign items to boxes and export packing lists'],
+                de:['Versand: Karton-Packscanner','LP-Nummern scannen, Kartons verwalten und Packdaten als Excel exportieren']
+            };
+            document.querySelector('h1 span:last-child').textContent = toolkitNames[lang][0];
+            document.getElementById('toolkit-page-subtitle').textContent = toolkitNames[lang][1];
+            document.title = toolkitNames[lang][0];
             renderBoxes();
             const status = document.getElementById('excel-status');
             if (lookupCount > 0) status.textContent = ({zh:`已載入 ${lookupCount} 筆對照資料`,en:`Loaded ${lookupCount} mapping records`,de:`${lookupCount} Zuordnungen geladen`,'zh-CN':`已加载 ${lookupCount} 条对照数据`})[lang];
