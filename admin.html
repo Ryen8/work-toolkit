@@ -36,6 +36,38 @@ const t=(key,...args)=>{const v=(LANG[language]||LANG['zh-CN'])[key];return type
 function setLanguage(lang){language=LANG[lang]?lang:'zh-CN';localStorage.setItem('liwus-language',language);document.documentElement.lang=language==='zh'?'zh-TW':language;document.getElementById('language-select').value=language;document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));if(currentUser&&Array.isArray(lastFiles)){showLoggedIn(currentUser);renderFiles(lastFiles);renderSelection()}}
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 const ALLOWED_UPLOAD_EXTENSIONS = new Set(['pdf','xlsx','xls','csv','zip','rar']);
+// Store non-ASCII filenames as reversible ASCII keys. This avoids Storage
+// "Invalid key" errors while preserving the original name in the UI/download.
+const ENCODED_NAME_PREFIX = 'liwus-u8-';
+function storageSafeFilename(original){
+  if(/^[A-Za-z0-9][A-Za-z0-9._ -]*$/.test(original) && original.length <= 180 && !original.startsWith(ENCODED_NAME_PREFIX)) return original;
+  const ext = original.split('.').pop()?.toLowerCase() || '';
+  const bytes = new TextEncoder().encode(original);
+  let binary = '';
+  for(const byte of bytes) binary += String.fromCharCode(byte);
+  const encoded = btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const safeName = `${ENCODED_NAME_PREFIX}${encoded}.${ext}`;
+  if(safeName.length > 220) throw new Error('Filename is too long (please shorten the file name)');
+  return safeName;
+}
+function originalFilename(name){
+  const value = String(name || '');
+  const match = /^liwus-u8-([A-Za-z0-9_-]+)\.([a-z0-9]+)$/.exec(value);
+  if(!match) return value;
+  try{
+    const b64 = match[1].replace(/-/g,'+').replace(/_/g,'/');
+    const binary = atob(b64);
+    const bytes = Uint8Array.from(binary, ch=>ch.charCodeAt(0));
+    const decoded = new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+    if(decoded.split('.').pop()?.toLowerCase() !== match[2]) return value;
+    return decoded;
+  }catch{return value}
+}
+function displayFileName(file){
+  const basename = String(file.path || '').split('/').pop();
+  const decoded = originalFilename(basename || file.name || '');
+  return decoded === (basename || '') ? originalFilename(file.name || basename || '') : decoded;
+}
 const STAFF_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/toolkit-staff-files`;
 let userRole = null;
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/manage-toolkit-files`;
@@ -93,7 +125,7 @@ $('uploadBtn').addEventListener('click',async()=>{
         if(file.size>MAX_UPLOAD_BYTES||file.size===0)throw new Error('Invalid file size');
         const ext=file.name.split('.').pop()?.toLowerCase()||'';
         if(!ALLOWED_UPLOAD_EXTENSIONS.has(ext))throw new Error('File type not allowed');
-        const authorization=await staffRequest('sign-upload',{filename:file.name,size:file.size});
+        const authorization=await staffRequest('sign-upload',{filename:storageSafeFilename(file.name),size:file.size});
         const {error:storageError}=await supabase.storage.from('work-toolkit-files').uploadToSignedUrl(authorization.path,authorization.token,file,{contentType:authorization.contentType,upsert:false});
         if(storageError)throw storageError;
         ok++;addUploadResult(file.name,t('uploadOk'),false);
@@ -106,11 +138,11 @@ $('uploadBtn').addEventListener('click',async()=>{
 });
 renderSelection();
 function td(tr,text,cls=''){const el=document.createElement('td');el.textContent=text;el.className=cls;tr.append(el);return el}
-function renderFiles(files){$('fileRows').replaceChildren();$('fileCount').textContent=t('total',files.length);$('empty').classList.toggle('hidden',files.length>0);const frag=document.createDocumentFragment();for(const f of files){const tr=document.createElement('tr');td(tr,f.name||'—');td(tr,f.path||'—','path');td(tr,size(f.size));td(tr,date(f.created_at));const action=td(tr,'','actions');const download=document.createElement('button');download.textContent=t('download');download.className='green small';download.addEventListener('click',async()=>{download.disabled=true;status('fileStatus',t('generating'));try{const result=await staffRequest('download',{path:f.path});// Supabase Storage honors the `download` query parameter and returns
+function renderFiles(files){$('fileRows').replaceChildren();$('fileCount').textContent=t('total',files.length);$('empty').classList.toggle('hidden',files.length>0);const frag=document.createDocumentFragment();for(const f of files){const tr=document.createElement('tr');td(tr,displayFileName(f)||'—');td(tr,f.path||'—','path');td(tr,size(f.size));td(tr,date(f.created_at));const action=td(tr,'','actions');const download=document.createElement('button');download.textContent=t('download');download.className='green small';download.addEventListener('click',async()=>{download.disabled=true;status('fileStatus',t('generating'));try{const result=await staffRequest('download',{path:f.path});// Supabase Storage honors the `download` query parameter and returns
 // Content-Disposition: attachment, including for browser-displayable TXT/PDF.
 // This avoids cross-origin Blob fetches and preserves the signed URL token.
 const signedUrl=new URL(result.url);
-const filename=String(f.name||f.path.split('/').pop()||'download');
+const filename=displayFileName(f)||'download';
 signedUrl.searchParams.set('download',filename);
 const link=document.createElement('a');
 link.href=signedUrl.toString();
