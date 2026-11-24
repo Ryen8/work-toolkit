@@ -273,6 +273,28 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         try { localStorage.setItem(key, String(section.open)); } catch (_) {}
       });
     });
+    // Remember every nested office tool category independently, too.
+    // Stable keys are shared across all four languages and survive navigation.
+    const toolCategoryPreferences = [
+      ['liwus-toolkit-tmall-expanded', 0],
+      ['liwus-toolkit-dewu-expanded', 1],
+      ['liwus-toolkit-shipping-expanded', 2]
+    ];
+    const officeToolCategories = document.querySelectorAll('#office-staff-section .tool-accordion');
+    toolCategoryPreferences.forEach(([key, index]) => {
+      const category = officeToolCategories[index];
+      if (!category) return;
+      try {
+        const saved = localStorage.getItem(key);
+        category.open = saved === 'true'; // First visit: collapsed.
+      } catch (_) {
+        category.open = false;
+      }
+      category.addEventListener('toggle', () => {
+        try { localStorage.setItem(key, String(category.open)); } catch (_) {}
+      });
+    });
+
     const initialLanguage = localStorage.getItem(LANGUAGE_KEY) || localStorage.getItem('warehouse_language') || localStorage.getItem('lp_pdf_language') || 'en';
     setLanguage(initialLanguage);
 </script>
