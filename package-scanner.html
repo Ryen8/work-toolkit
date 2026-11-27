@@ -143,31 +143,18 @@ button.error,.btn.danger{background:#dc2626;color:white}
             </label>
         </section>
 
-        <!-- 步驟 1：設定當前箱號與重量 -->
+        <!-- 步驟 1：掃描、箱明細、重量確認與封箱 -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
             <div class="flex justify-between items-center">
                 <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">1</span>
-                    當前裝箱設定 & 掃描
+                    當前裝箱掃描與分箱管理
                 </h2>
-                <button onclick="startNewBox()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-box-open"></i> 封箱並開下一箱
-                </button>
             </div>
 
-            <!-- 箱名與重量設定列 -->
-            <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">當前箱號名稱 (可自訂)</label>
-                    <input type="text" id="current-box-name" value="BOX 001" oninput="updateCurrentBoxMeta()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">本箱重量 (kg)</label>
-                    <div class="relative">
-                        <input type="number" id="current-box-weight" step="0.01" min="0" placeholder="0.00" oninput="updateCurrentBoxMeta()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 pr-9 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-medium">kg</span>
-                    </div>
-                </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                <label class="block text-[11px] font-semibold text-slate-500 mb-1">當前箱號名稱 (可自訂)</label>
+                <input type="text" id="current-box-name" value="BOX 001" oninput="updateCurrentBoxMeta()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <!-- 相機掃描區塊 -->
@@ -202,29 +189,28 @@ button.error,.btn.danger{background:#dc2626;color:white}
 
             <!-- 即時比對狀態提示 -->
             <div id="scan-feedback" class="hidden px-3.5 py-2.5 rounded-xl text-xs font-medium flex items-center justify-between"></div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                <h3 class="font-bold text-slate-700 text-xs">已掃描分箱清單 (最新在最上方)</h3>
+            </div>
+            <div id="boxes-container" class="space-y-4"></div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2">
+                <label class="block text-xs font-bold text-slate-700"><i class="fa-solid fa-scale-balanced mr-1"></i>本箱重量確認</label>
+                <label class="block text-[11px] font-semibold text-slate-500">本箱重量 (kg)</label>
+                <div class="relative">
+                    <input type="number" id="current-box-weight" step="0.01" min="0" placeholder="0.00" oninput="updateCurrentBoxMeta()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 pr-9 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-medium">kg</span>
+                </div>
+                <p class="text-[11px] text-slate-500">掃描完成後確認重量，才能封箱並開下一箱；最後一箱可直接下載並上傳。</p>
+            </div>
+            <button id="next-box-btn" onclick="startNewBox()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-box-open"></i>封箱並開下一箱
+            </button>
         </section>
 
-        <!-- 步驟 2：分箱明細預覽與管理 -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
-            <div class="flex justify-between items-center">
-                <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">2</span>
-                    已掃描分箱清單 (最新在最上方)
-                </h2>
-                <button onclick="clearAllData()" class="text-xs text-red-500 hover:text-red-700 font-medium">
-                    <i class="fa-solid fa-trash-can"></i> 清空全部
-                </button>
-            </div>
-
-            <div id="boxes-container" class="space-y-4">
-                <!-- 動態產生各箱卡片 -->
-            </div>
-        </section>
-
-        <!-- 步驟 3：報表標題設定與匯出 -->
+        <!-- 步驟 2：報表與資料管理 -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
             <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">3</span>
+                <span class="bg-blue-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">2</span>
                 統整匯出報表
             </h2>
 
@@ -239,15 +225,16 @@ button.error,.btn.danger{background:#dc2626;color:white}
                 </div>
             </div>
 
-            <button id="export-all-btn" onclick="exportPackingData()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white py-3 rounded-xl text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-file-zipper"></i> <span id="export-all-label" data-export-lang="button">导出装箱资料（Excel）</span>
-            </button>
-            <p id="export-all-description" data-export-lang="description" class="text-[11px] text-slate-500">打包人员导出箱号、重量和 LP 单号，交给负责人员在单号比对工具处理。</p>
             <button id="export-cloud-btn" onclick="downloadAndUploadPackingData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
                 <i class="fa-solid fa-cloud-arrow-up"></i><span id="export-cloud-label">下載並上傳至雲端</span>
             </button>
             <p id="export-cloud-hint" class="text-[11px] text-slate-500">下載相同的裝箱 Excel，並使用文件管理中心的已登入帳戶上傳至雲端（單檔上限 50 MB）。</p>
             <div id="export-cloud-status" class="hidden rounded-lg px-3 py-2 text-xs font-medium" role="status" aria-live="polite"></div>
+            <div id="batch-lock-banner" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-3 py-3 text-xs font-semibold"></div>
+            <button id="clear-records-btn" onclick="clearAllData()" class="w-full bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2" disabled>
+                <i class="fa-solid fa-trash-can"></i><span id="clear-records-label">刪除全部記錄</span>
+            </button>
+            <p id="clear-records-hint" class="text-[11px] text-slate-500">只有雲端上傳成功並鎖定後，才可刪除本批記錄。</p>
         </section>
 
     </main>
@@ -258,7 +245,7 @@ button.error,.btn.danger{background:#dc2626;color:white}
     <script>
 
         // UI language is saved independently of the box data.
-        const TRANSLATIONS = {"返回工具列表": ["Back to tools", "Zur Übersicht"],"裝箱掃描與單號比對系統": ["Packing Scanner & Order Matcher", "Packscanner & Auftragsabgleich"], "上傳單號對照表 (Excel)": ["Upload Order Mapping (Excel)", "Auftragszuordnung hochladen (Excel)"], "尚未載入對照表": ["No mapping loaded", "Keine Zuordnung geladen"], "點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)": ["Click or drag an Excel file (.xlsx / .xls / .csv)", "Excel-Datei auswählen oder hierher ziehen (.xlsx / .xls / .csv)"], "自動識別「指定运单号」與「系统履约单号」欄位": ["Automatically detects tracking and fulfillment number columns", "Erkennt Versand- und Fulfillmentnummern automatisch"], "當前裝箱設定 & 掃描": ["Current Box & Scanning", "Aktueller Karton & Scannen"], "封箱並開下一箱": ["Close Box & Open Next", "Karton schließen & nächsten öffnen"], "當前箱號名稱 (可自訂)": ["Current Box Name (editable)", "Kartonname (bearbeitbar)"], "本箱重量 (kg)": ["Box Weight (kg)", "Kartongewicht (kg)"], "條碼掃描輸入 (支援相機或藍牙掃描槍)": ["Barcode Input (camera or Bluetooth scanner)", "Barcode-Eingabe (Kamera oder Bluetooth-Scanner)"], "連續掃描不中斷": ["Continuous Scanning", "Fortlaufend scannen"], "關閉相機": ["Stop Camera", "Kamera schließen"], "開啟相機": ["Open Camera", "Kamera öffnen"], "加入": ["Add", "Hinzufügen"], "已掃描分箱清單 (最新在最上方)": ["Scanned Boxes (newest first)", "Gescannte Kartons (neueste zuerst)"], "清空全部": ["Clear All", "Alles löschen"], "統整匯出報表": ["Export Reports", "Berichte exportieren"], "報表抬頭 / 客戶名稱": ["Report Header / Client", "Berichtskopf / Kunde"], "副標題": ["Subtitle", "Untertitel"], "匯出 Excel (.xlsx)": ["Export Excel (.xlsx)", "Excel exportieren (.xlsx)"], "生成 PDF 報表": ["Generate PDF Report", "PDF-Bericht erstellen"], "依箱號分別匯出 Excel（ZIP 打包）": ["Export Excel per Box (ZIP)", "Excel je Karton exportieren (ZIP)"], "每箱獨立一個 Excel，只包含「系統履約單號」一欄；檔名自動使用箱號及重量，例如 box1-9kg.xlsx。空箱不匯出。": ["One Excel file per box, containing only the fulfillment number column. Named by box and weight (e.g. box1-9kg.xlsx). Empty boxes are skipped.", "Eine Excel-Datei je Karton, nur mit Fulfillmentnummern. Dateiname aus Karton und Gewicht (z. B. box1-9kg.xlsx). Leere Kartons werden übersprungen."], "箱": ["boxes", "Kartons"], "件": ["items", "Pakete"], "掃描中": ["SCANNING", "AKTIV"], "未填重量": ["No weight", "Kein Gewicht"], "此箱尚無包裹，請掃描條碼加入": ["No parcels yet. Scan a barcode to add one.", "Noch keine Pakete. Zum Hinzufügen Barcode scannen."], "指定運單號 (MAIL NO.)": ["Tracking No. (MAIL NO.)", "Sendungsnummer (MAIL NO.)"], "系統履約單號": ["Fulfillment Number", "Fulfillmentnummer"], "刪": ["Del.", "Löschen"], "尚無箱子資料": ["No boxes yet", "Noch keine Kartons"], "掃描或輸入指定運單號 (按 Enter 加入)": ["Scan or enter tracking number (press Enter)", "Sendungsnummer scannen/eingeben (Enter)"], "已載入": ["Loaded", "Geladen"], "筆對照資料": ["mapping records", "Zuordnungen"], "查無對應單號": ["No matching number", "Keine Zuordnung"], "未上傳對照表": ["Mapping not uploaded", "Keine Zuordnungstabelle"], "已匹配": ["Matched", "Zugeordnet"], "未匹配": ["Unmatched", "Nicht zugeordnet"], "裝箱明細對照表": ["Box Details", "Kartondetails"], "各箱重量統計": ["Box Weight Summary", "Gewichtsübersicht"], "箱號 (BOX)": ["Box (BOX)", "Karton (BOX)"], "箱重 (kg)": ["Weight (kg)", "Gewicht (kg)"], "比對狀態": ["Match Status", "Abgleichstatus"], "掃描時間": ["Scan Time", "Scanzeit"], "件數 (Parcels)": ["Parcels", "Pakete"], "重量 (kg)": ["Weight (kg)", "Gewicht (kg)"]};
+        const TRANSLATIONS = {"返回工具列表": ["Back to tools", "Zur Übersicht"],"裝箱掃描與單號比對系統": ["Packing Scanner & Order Matcher", "Packscanner & Auftragsabgleich"], "上傳單號對照表 (Excel)": ["Upload Order Mapping (Excel)", "Auftragszuordnung hochladen (Excel)"], "尚未載入對照表": ["No mapping loaded", "Keine Zuordnung geladen"], "點擊選擇或拖曳 Excel 檔案 (.xlsx / .xls / .csv)": ["Click or drag an Excel file (.xlsx / .xls / .csv)", "Excel-Datei auswählen oder hierher ziehen (.xlsx / .xls / .csv)"], "自動識別「指定运单号」與「系统履约单号」欄位": ["Automatically detects tracking and fulfillment number columns", "Erkennt Versand- und Fulfillmentnummern automatisch"], "當前裝箱掃描與分箱管理": ["Packing Scan & Box Management", "Packscanner & Kartonverwaltung"], "本箱重量確認": ["Confirm box weight", "Kartongewicht bestätigen"], "掃描完成後確認重量，才能封箱並開下一箱；最後一箱可直接下載並上傳。": ["Confirm weight after scanning before closing the box. The last box can be uploaded directly.", "Nach dem Scannen Gewicht bestätigen; der letzte Karton kann direkt hochgeladen werden."], "當前裝箱設定 & 掃描": ["Current Box & Scanning", "Aktueller Karton & Scannen"], "封箱並開下一箱": ["Close Box & Open Next", "Karton schließen & nächsten öffnen"], "當前箱號名稱 (可自訂)": ["Current Box Name (editable)", "Kartonname (bearbeitbar)"], "本箱重量 (kg)": ["Box Weight (kg)", "Kartongewicht (kg)"], "條碼掃描輸入 (支援相機或藍牙掃描槍)": ["Barcode Input (camera or Bluetooth scanner)", "Barcode-Eingabe (Kamera oder Bluetooth-Scanner)"], "連續掃描不中斷": ["Continuous Scanning", "Fortlaufend scannen"], "關閉相機": ["Stop Camera", "Kamera schließen"], "開啟相機": ["Open Camera", "Kamera öffnen"], "加入": ["Add", "Hinzufügen"], "已掃描分箱清單 (最新在最上方)": ["Scanned Boxes (newest first)", "Gescannte Kartons (neueste zuerst)"], "清空全部": ["Clear All", "Alles löschen"], "統整匯出報表": ["Export Reports", "Berichte exportieren"], "報表抬頭 / 客戶名稱": ["Report Header / Client", "Berichtskopf / Kunde"], "副標題": ["Subtitle", "Untertitel"], "匯出 Excel (.xlsx)": ["Export Excel (.xlsx)", "Excel exportieren (.xlsx)"], "生成 PDF 報表": ["Generate PDF Report", "PDF-Bericht erstellen"], "依箱號分別匯出 Excel（ZIP 打包）": ["Export Excel per Box (ZIP)", "Excel je Karton exportieren (ZIP)"], "每箱獨立一個 Excel，只包含「系統履約單號」一欄；檔名自動使用箱號及重量，例如 box1-9kg.xlsx。空箱不匯出。": ["One Excel file per box, containing only the fulfillment number column. Named by box and weight (e.g. box1-9kg.xlsx). Empty boxes are skipped.", "Eine Excel-Datei je Karton, nur mit Fulfillmentnummern. Dateiname aus Karton und Gewicht (z. B. box1-9kg.xlsx). Leere Kartons werden übersprungen."], "箱": ["boxes", "Kartons"], "件": ["items", "Pakete"], "掃描中": ["SCANNING", "AKTIV"], "未填重量": ["No weight", "Kein Gewicht"], "此箱尚無包裹，請掃描條碼加入": ["No parcels yet. Scan a barcode to add one.", "Noch keine Pakete. Zum Hinzufügen Barcode scannen."], "指定運單號 (MAIL NO.)": ["Tracking No. (MAIL NO.)", "Sendungsnummer (MAIL NO.)"], "系統履約單號": ["Fulfillment Number", "Fulfillmentnummer"], "刪": ["Del.", "Löschen"], "尚無箱子資料": ["No boxes yet", "Noch keine Kartons"], "掃描或輸入指定運單號 (按 Enter 加入)": ["Scan or enter tracking number (press Enter)", "Sendungsnummer scannen/eingeben (Enter)"], "已載入": ["Loaded", "Geladen"], "筆對照資料": ["mapping records", "Zuordnungen"], "查無對應單號": ["No matching number", "Keine Zuordnung"], "未上傳對照表": ["Mapping not uploaded", "Keine Zuordnungstabelle"], "已匹配": ["Matched", "Zugeordnet"], "未匹配": ["Unmatched", "Nicht zugeordnet"], "裝箱明細對照表": ["Box Details", "Kartondetails"], "各箱重量統計": ["Box Weight Summary", "Gewichtsübersicht"], "箱號 (BOX)": ["Box (BOX)", "Karton (BOX)"], "箱重 (kg)": ["Weight (kg)", "Gewicht (kg)"], "比對狀態": ["Match Status", "Abgleichstatus"], "掃描時間": ["Scan Time", "Scanzeit"], "件數 (Parcels)": ["Parcels", "Pakete"], "重量 (kg)": ["Weight (kg)", "Gewicht (kg)"]};
         
 const ZH_CN_CHAR_MAP = {"並":"并","併":"并","來":"来","倉":"仓","個":"个","備":"备","傳":"传","僅":"仅","儲":"储","兩":"两","別":"别","刪":"删","動":"动","匯":"汇","區":"区","參":"参","啟":"启","單":"单","嗎":"吗","圖":"图","報":"报","塊":"块","夾":"夹","將":"将","專":"专","對":"对","導":"导","屬":"属","庫":"库","彙":"汇","後":"后","態":"态","應":"应","戶":"户","掃":"扫","換":"换","擇":"择","擊":"击","據":"据","攝":"摄","敗":"败","數":"数","斷":"断","於":"于","時":"时","會":"会","條":"条","槍":"枪","標":"标","樣":"样","機":"机","檔":"档","檢":"检","欄":"栏","權":"权","沒":"没","淺":"浅","準":"准","瀏":"浏","為":"为","無":"无","狀":"状","獨":"独","現":"现","產":"产","當":"当","確":"确","碼":"码","稱":"称","筆":"笔","籤":"签","約":"约","純":"纯","細":"细","終":"终","組":"组","結":"结","統":"统","經":"经","網":"网","線":"线","編":"编","總":"总","繼":"继","續":"续","與":"与","藍":"蓝","處":"处","號":"号","裝":"装","製":"制","複":"复","視":"视","覽":"览","訂":"订","計":"计","記":"记","設":"设","註":"注","試":"试","認":"认","誤":"误","請":"请","證":"证","識":"识","讀":"读","貨":"货","資":"资","質":"质","載":"载","輸":"输","這":"这","連":"连","進":"进","運":"运","過":"过","遞":"递","選":"选","遺":"遗","還":"还","鄰":"邻","錄":"录","錯":"错","鍵":"键","閉":"闭","開":"开","間":"间","關":"关","隱":"隐","響":"响","頁":"页","頂":"顶","順":"顺","預":"预","頭":"头","題":"题","驗":"验","驟":"骤","體":"体","點":"点"};
 const ZH_CN_PHRASES = {"汇出":"导出","下载":"下载","储存":"保存","档案":"文件","检查":"检查","对照":"对照","辨识":"识别","识别":"识别","条码":"条码","包裹单号":"包裹单号","快递单号":"快递单号","装箱":"装箱","扫描":"扫描","单号":"单号","资料":"数据","当前":"当前","出库单":"出库单","物流面单":"物流面单","配对":"匹配","未配对":"未匹配","匹配页":"匹配页","已配对":"已匹配","寄件人":"寄件人","报表":"报表","确认":"确认","数量":"数量","页码":"页码","页面":"页面","繁体中文":"繁体中文","货运":"货运","记录":"记录","点击":"点击","發货":"发货","仓库":"仓库","系统":"系统","重量":"重量","批量":"批量","产生":"生成","生成":"生成","备份":"备份","还原":"恢复","开启":"开启","关闭":"关闭","编号":"编号","标签":"标签","商品编码":"商品编码","名称":"名称","清空":"清空","汇总":"汇总"};
@@ -301,8 +288,6 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                 en: ['Download all reports (ZIP)','One download: Excel packing summary, PDF packing report, and VO-compatible Excel per box (sheet1 / 系统履约单号). Empty boxes are skipped.'],
                 de: ['Alle Berichte herunterladen (ZIP)','Ein Download: Excel-Gesamtübersicht, PDF-Packbericht und VO-kompatible Excel-Datei je Karton (sheet1 / 系统履约单号). Leere Kartons werden übersprungen.']
             };
-            document.getElementById('export-all-label').textContent = PACK_LABEL[lang][0];
-            document.getElementById('export-all-description').textContent = PACK_LABEL[lang][1];
             const back = document.getElementById("back-to-tools");
             back.title = t("返回工具列表");
             back.setAttribute("aria-label", t("返回工具列表"));
@@ -334,6 +319,32 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
 
         let boxes = JSON.parse(localStorage.getItem('warehouse_boxes') || '[]');
         let activeBoxIndex = 0;
+        const PACK_BATCH_KEY = 'warehouse_packing_batch_v2';
+        let batchMeta = (() => { try { return JSON.parse(localStorage.getItem(PACK_BATCH_KEY)) || {}; } catch { return {}; } })();
+        if (!batchMeta.id) batchMeta = {id: (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`), status:'editing'};
+        function persistBatch() { localStorage.setItem(PACK_BATCH_KEY, JSON.stringify(batchMeta)); }
+        function isBatchLocked() { return batchMeta.status === 'uploaded'; }
+        function batchText(zh,en,de) { return currentLanguage==='en'?en:currentLanguage==='de'?de:currentLanguage==='zh-CN'?toSimplified(zh):zh; }
+        function validBoxWeight(box) { return Number.isFinite(Number(box.weight)) && String(box.weight).trim()!=='' && Number(box.weight)>0; }
+        function checkPackingWeights() {
+            const missing=boxes.filter(b=>b.items?.length && !validBoxWeight(b));
+            if(missing.length) throw new Error(batchText(`以下箱子尚未填寫有效重量（必須大於 0 kg）：${missing.map(b=>b.name).join('、')}`,`Valid weight (> 0 kg) required for: ${missing.map(b=>b.name).join(', ')}`,`Gültiges Gewicht (> 0 kg) erforderlich für: ${missing.map(b=>b.name).join(', ')}`));
+        }
+        function ensureEditable() { if (isBatchLocked()) { alert(batchText('本次裝箱作業已完成，記錄已鎖定。請先刪除全部記錄才能開始新批次。','This packing batch is complete and locked. Delete all records to start a new batch.','Dieser Packvorgang ist abgeschlossen und gesperrt. Für einen neuen Vorgang alle Daten löschen.')); return false; } return !cloudUploadBusy; }
+        function updateBatchUI() {
+            const locked=isBatchLocked();
+            const banner=document.getElementById('batch-lock-banner');
+            if(!banner)return;
+            banner.classList.toggle('hidden',!locked);
+            banner.textContent=batchText('本次裝箱作業已完成，雲端上傳成功。資料已鎖定，可查看但不能修改。','Packing completed and uploaded. Records are locked and read-only.','Packvorgang abgeschlossen und hochgeladen. Daten sind schreibgeschützt.');
+            const exportBtn=document.getElementById('export-cloud-btn');
+            exportBtn.disabled=locked||cloudUploadBusy;
+            exportBtn.classList.toggle('opacity-50',locked);
+            document.getElementById('clear-records-btn').disabled=!locked||cloudUploadBusy;
+            ['current-box-name','current-box-weight','barcode-input','continuous-scan','excel-upload','report-brand','report-subtitle'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=locked||cloudUploadBusy;});
+            ['start-scan-btn','next-box-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=locked||cloudUploadBusy;});
+        }
+
 
         let html5QrCode = null;
         let isScanning = false;
@@ -345,8 +356,10 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                 boxes.push({ id: Date.now(), name: 'BOX 001', weight: '', items: [] });
             }
             activeBoxIndex = boxes.length - 1;
+            persistBatch();
             syncInputsWithActiveBox();
             setLanguage(currentLanguage);
+            updateBatchUI();
         });
 
         function saveState() {
@@ -361,6 +374,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         }
 
         function handleExcelUpload(event) {
+            if (!ensureEditable()) return;
             const file = event.target.files[0];
             if (!file) return;
 
@@ -426,6 +440,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         }
 
         function updateCurrentBoxMeta() {
+            if (!ensureEditable()) return;
             const currentBox = boxes[activeBoxIndex];
             if (!currentBox) return;
             currentBox.name = document.getElementById('current-box-name').value.trim() || `BOX ${String(activeBoxIndex + 1).padStart(3, '0')}`;
@@ -435,6 +450,11 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         }
 
         function startNewBox() {
+            if (!ensureEditable()) return;
+            const current=boxes[activeBoxIndex];
+            if(!current?.items?.length){showFeedback(batchText('目前箱子沒有商品，請先掃描。','Current box is empty. Scan an item first.','Der aktuelle Karton ist leer. Bitte zuerst scannen.'),'warning');return;}
+            if(!validBoxWeight(current)){showFeedback(batchText(`請先填寫「${current.name}」的有效重量（大於 0 kg）。`,`Enter a valid weight (> 0 kg) for ${current.name}.`,`Gültiges Gewicht (> 0 kg) für ${current.name} eingeben.`),'warning');document.getElementById('current-box-weight').focus();return;}
+
             const nextNum = boxes.length + 1;
             const defaultName = `BOX ${String(nextNum).padStart(3, '0')}`;
             boxes.push({
@@ -452,12 +472,14 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         }
 
         function selectActiveBox(index) {
+            if(isBatchLocked()) return;
             activeBoxIndex = index;
             syncInputsWithActiveBox();
             renderBoxes();
         }
 
         function processBarcode(rawCode) {
+            if (!ensureEditable()) return;
             const code = String(rawCode || '').trim();
             if (!code) return;
 
@@ -538,6 +560,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         }
 
         function startScanner() {
+            if (!ensureEditable()) return;
             document.getElementById('scanner-wrapper').classList.remove('hidden');
             document.getElementById('start-scan-btn').classList.add('hidden');
 
@@ -609,7 +632,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="text-xs font-bold ${isActive ? 'text-blue-100' : 'text-slate-600'}">${weightDisplay}</span>
-                            ${boxes.length > 1 ? `
+                            ${!isBatchLocked() && boxes.length > 1 ? `
                             <button onclick="event.stopPropagation(); deleteBox(${bIdx})" class="${isActive ? 'text-blue-200 hover:text-white' : 'text-slate-400 hover:text-red-500'} text-xs p-1" title="刪除此箱">
                                 <i class="fa-solid fa-trash"></i>
                             </button>` : ''}
@@ -636,7 +659,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                                         ${escapeHtml(item.fulfillment)}
                                     </div>
                                     <div class="col-span-1 text-right">
-                                        <button onclick="deleteItem(${bIdx}, ${iIdx})" class="text-slate-300 hover:text-red-500 p-1">
+                                        <button ${isBatchLocked()?'disabled':''} onclick="deleteItem(${bIdx}, ${iIdx})" class="text-slate-300 hover:text-red-500 p-1">
                                             <i class="fa-solid fa-xmark"></i>
                                         </button>
                                     </div>
@@ -649,15 +672,18 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
 
             container.innerHTML = html;
             translatePage(container);
+            updateBatchUI();
         }
 
         function deleteItem(boxIdx, itemIdx) {
+            if (!ensureEditable()) return;
             boxes[boxIdx].items.splice(itemIdx, 1);
             saveState();
             renderBoxes();
         }
 
         function deleteBox(boxIdx) {
+            if (!ensureEditable()) return;
             if (!confirm(message(`確定要刪除「${boxes[boxIdx].name}」及其中的所有單號嗎？`,`Delete ${boxes[boxIdx].name} and all its numbers?`,`Karton ${boxes[boxIdx].name} und alle Nummern löschen?`))) return;
             boxes.splice(boxIdx, 1);
             if (activeBoxIndex >= boxes.length) {
@@ -669,13 +695,15 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         }
 
         function clearAllData() {
-            if (!confirm(message('確定要清空所有分箱與掃描記錄嗎？','Delete all boxes and scan records?','Alle Kartons und Scandaten löschen?'))) return;
-            boxes = [{ id: Date.now(), name: 'BOX 001', weight: '', items: [] }];
-            activeBoxIndex = 0;
-            syncInputsWithActiveBox();
-            saveState();
-            renderBoxes();
+            if(!isBatchLocked()) {alert(batchText('只有雲端上傳成功後，才允許刪除全部記錄。','Delete is available only after successful cloud upload.','Löschen ist erst nach erfolgreichem Cloud-Upload möglich.'));return;}
+            if(!confirm(batchText('確定刪除本批全部箱子與掃描記錄？此操作無法復原。','Delete all boxes and scanned records in this batch? This cannot be undone.','Alle Kartons und Scandaten dieses Vorgangs unwiderruflich löschen?')))return;
+            if(!confirm(batchText('再次確認：雲端備份已成功，現在永久刪除本機全部裝箱記錄並開始新批次？','Confirm again: delete all local packing records and start a new batch?','Erneut bestätigen: Alle lokalen Packdaten löschen und neuen Vorgang starten?')))return;
+            boxes=[{id:Date.now(),name:'BOX 001',weight:'',items:[]}];activeBoxIndex=0;
+            batchMeta={id:(crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`),status:'editing'};
+            persistBatch();syncInputsWithActiveBox();saveState();renderBoxes();
             document.getElementById('scan-feedback').classList.add('hidden');
+            document.getElementById('export-cloud-status').classList.add('hidden');
+            updateBatchUI();
         }
 
         function exportToExcel() {
@@ -1046,6 +1074,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
 
         // The Excel data is generated once for both download and cloud upload.
         function makePackingExcel() {
+            checkPackingWeights();
             if (!window.XLSX) throw new Error('Excel library unavailable / Excel 函數庫未載入');
             const filled = boxes.filter(b => b.items && b.items.length);
             if (!filled.length) throw new Error(message('尚無裝箱資料','No scanned parcels','Keine gescannten Pakete'));
@@ -1063,7 +1092,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             XLSX.utils.book_append_sheet(wb,ws,'装箱资料');
             const d=new Date();
             const date=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
-            const filename=`packing-data-${date}.xlsx`;
+            const filename=`packing-data-${date}-${batchMeta.id}.xlsx`;
             const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});
             return {filename,blob:new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})};
         }
@@ -1087,6 +1116,9 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             const labels=CLOUD_TEXT[currentLanguage]||CLOUD_TEXT.zh;
             document.getElementById('export-cloud-label').textContent=labels[0];
             document.getElementById('export-cloud-hint').textContent=labels[1];
+            document.getElementById('clear-records-label').textContent=batchText('刪除全部記錄','Delete all records','Alle Daten löschen');
+            document.getElementById('clear-records-hint').textContent=batchText('只有雲端上傳成功並鎖定後，才可刪除本批記錄。','Only available after successful cloud upload and locking.','Nur nach erfolgreichem Cloud-Upload und Sperrung verfügbar.');
+            updateBatchUI();
         }
         function cloudStatus(text,isError=false){
             const el=document.getElementById('export-cloud-status');
@@ -1096,23 +1128,21 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         }
         let cloudUploadBusy=false;
         async function downloadAndUploadPackingData(){
-            if(cloudUploadBusy)return;
+            if(cloudUploadBusy||isBatchLocked())return;
             let payload;
             try {payload=makePackingExcel();}
             catch(err){cloudStatus(err.message,true);return;}
-            downloadPackingExcel(payload.blob,payload.filename);
-            const btn=document.getElementById('export-cloud-btn');
             const labels=CLOUD_TEXT[currentLanguage]||CLOUD_TEXT.zh;
-            cloudUploadBusy=true;btn.disabled=true;cloudStatus(labels[2]);
+            cloudUploadBusy=true;updateBatchUI();cloudStatus(labels[2]);
             try {
-                // Same GitHub Pages origin and Supabase project as admin.html.
-                // Supabase JS shares the existing authenticated session via localStorage.
                 const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
                 const supabase=createClient('https://arbkopmhwasqdcriuswz.supabase.co','sb_publishable__z1c0Cct_1y0E-deI4yXtA_T2WM7-6u');
                 const {data:{session},error:sessionError}=await supabase.auth.getSession();
                 if(sessionError||!session?.access_token)throw new Error(labels[5]);
                 const file=new File([payload.blob],payload.filename,{type:payload.blob.type});
                 if(file.size>50*1024*1024)throw new Error('File exceeds 50 MB');
+                // Stable batch filename supports tracing retries. The existing sign-upload
+                // service chooses the cloud path; server-side idempotency needs backend support.
                 const response=await fetch('https://arbkopmhwasqdcriuswz.supabase.co/functions/v1/toolkit-staff-files',{
                     method:'POST',cache:'no-store',
                     headers:{'Authorization':`Bearer ${session.access_token}`,'apikey':'sb_publishable__z1c0Cct_1y0E-deI4yXtA_T2WM7-6u','Content-Type':'application/json'},
@@ -1123,11 +1153,15 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                 if(!response.ok||result?.success!==true||!result.path||!result.token)throw new Error(`${result?.error||'Upload authorization failed'} (HTTP ${response.status})`);
                 const {error}=await supabase.storage.from('work-toolkit-files').uploadToSignedUrl(result.path,result.token,file,{contentType:result.contentType||file.type,upsert:false});
                 if(error)throw error;
+                // Persist successful receipt before initiating local download.
+                batchMeta.status='uploaded';batchMeta.cloudPath=result.path;batchMeta.uploadedAt=new Date().toISOString();persistBatch();
+                downloadPackingExcel(payload.blob,payload.filename);
                 cloudStatus(labels[3]);
+                if(isScanning)stopScanner();
             }catch(err){
                 console.error('Packing cloud upload failed:',err);
-                cloudStatus(labels[4]+(err?.message||String(err)),true);
-            }finally{cloudUploadBusy=false;btn.disabled=false;}
+                cloudStatus(batchText('雲端上傳未確認成功，資料保留且未鎖定。請檢查後重試：','Cloud upload not confirmed; records remain editable. Check and retry: ','Cloud-Upload nicht bestätigt; Daten bleiben bearbeitbar. Prüfen und erneut versuchen: ')+(err?.message||String(err)),true);
+            }finally{cloudUploadBusy=false;updateBatchUI();renderBoxes();}
         }
 
         function message(zh, en, de) {
