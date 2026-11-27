@@ -152,17 +152,12 @@ button.error,.btn.danger{background:#dc2626;color:white}
                 </h2>
             </div>
 
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-                <label class="block text-[11px] font-semibold text-slate-500 mb-1">當前箱號名稱 (可自訂)</label>
-                <input type="text" id="current-box-name" value="BOX 001" oninput="updateCurrentBoxMeta()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
             <!-- 相機掃描區塊 -->
             <div>
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-xs font-medium text-slate-600">條碼掃描輸入 (支援相機或藍牙掃描槍)</span>
                     <label class="inline-flex items-center gap-1.5 cursor-pointer">
-                        <input type="checkbox" id="continuous-scan" checked class="w-3.5 h-3.5 text-blue-600 rounded">
+                        <input type="checkbox" id="continuous-scan" class="w-3.5 h-3.5 text-blue-600 rounded">
                         <span class="text-xs text-slate-600">連續掃描不中斷</span>
                     </label>
                 </div>
@@ -176,12 +171,12 @@ button.error,.btn.danger{background:#dc2626;color:white}
                     </button>
                 </div>
 
-                <div class="flex gap-2">
-                    <button id="start-scan-btn" onclick="startScanner()" class="bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2 shrink-0">
+                <div class="flex flex-wrap gap-2 sm:flex-nowrap">
+                    <button id="start-scan-btn" onclick="startScanner()" class="order-2 sm:order-1 w-[calc(50%-0.25rem)] sm:w-auto bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white px-3 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2 shrink-0">
                         <i class="fa-solid fa-camera"></i> 開啟相機
                     </button>
-                    <input type="text" id="barcode-input" placeholder="掃描或輸入指定運單號 (按 Enter 加入)" onkeydown="if(event.key==='Enter') processBarcode(this.value)" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
-                    <button onclick="processBarcode(document.getElementById('barcode-input').value)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition shrink-0">
+                    <input type="text" id="barcode-input" placeholder="掃描或輸入指定運單號 (按 Enter 加入)" onkeydown="if(event.key==='Enter') processBarcode(this.value)" class="order-1 sm:order-2 w-full min-w-0 sm:w-auto sm:flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+                    <button onclick="processBarcode(document.getElementById('barcode-input').value)" class="order-3 w-[calc(50%-0.25rem)] sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2.5 rounded-xl text-sm font-semibold transition shrink-0">
                         加入
                     </button>
                 </div>
@@ -341,7 +336,7 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             exportBtn.disabled=locked||cloudUploadBusy;
             exportBtn.classList.toggle('opacity-50',locked);
             document.getElementById('clear-records-btn').disabled=!locked||cloudUploadBusy;
-            ['current-box-name','current-box-weight','barcode-input','continuous-scan','excel-upload','report-brand','report-subtitle'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=locked||cloudUploadBusy;});
+            ['current-box-weight','barcode-input','continuous-scan','excel-upload','report-brand','report-subtitle'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=locked||cloudUploadBusy;});
             ['start-scan-btn','next-box-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=locked||cloudUploadBusy;});
         }
 
@@ -435,7 +430,6 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
         function syncInputsWithActiveBox() {
             const currentBox = boxes[activeBoxIndex];
             if (!currentBox) return;
-            document.getElementById('current-box-name').value = currentBox.name;
             document.getElementById('current-box-weight').value = currentBox.weight;
         }
 
@@ -443,10 +437,23 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
             if (!ensureEditable()) return;
             const currentBox = boxes[activeBoxIndex];
             if (!currentBox) return;
-            currentBox.name = document.getElementById('current-box-name').value.trim() || `BOX ${String(activeBoxIndex + 1).padStart(3, '0')}`;
             currentBox.weight = document.getElementById('current-box-weight').value;
             saveState();
             renderBoxes();
+        }
+
+        // 箱號直接在分箱清單標題列編輯；失焦/Enter 才儲存，避免輸入時重新繪製造成焦點丟失。
+        function saveBoxName(index, input) {
+            if (!ensureEditable() || !boxes[index]) return;
+            const defaultName = `BOX ${String(index + 1).padStart(3, '0')}`;
+            const name = input.value.trim() || defaultName;
+            boxes[index].name = name;
+            saveState();
+            renderBoxes();
+        }
+        function handleBoxNameKeydown(event, index) {
+            if (event.key === 'Enter') { event.preventDefault(); event.currentTarget.blur(); }
+            if (event.key === 'Escape') { event.currentTarget.value = boxes[index].name; event.currentTarget.blur(); }
         }
 
         function startNewBox() {
@@ -623,8 +630,8 @@ function toSimplified(text) { let s = Array.from(String(text), c => ZH_CN_CHAR_M
                 html += `
                 <div class="border ${isActive ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200'} rounded-xl overflow-hidden bg-white transition mb-3">
                     <div onclick="selectActiveBox(${bIdx})" class="px-3.5 py-2.5 ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-800'} flex justify-between items-center cursor-pointer">
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-sm tracking-wide">${escapeHtml(box.name)}</span>
+                        <div class="flex items-center gap-2 min-w-0 flex-wrap">
+                            <input type="text" value="${escapeHtml(box.name)}" aria-label="${t('當前箱號名稱 (可自訂)')}" title="${t('當前箱號名稱 (可自訂)')}" onclick="event.stopPropagation()" onkeydown="handleBoxNameKeydown(event, ${bIdx})" onblur="saveBoxName(${bIdx}, this)" ${isBatchLocked() || cloudUploadBusy ? 'disabled' : ''} class="w-24 max-w-full min-w-0 rounded px-2 py-1 text-sm font-bold tracking-wide border ${isActive ? 'bg-white text-slate-800 border-blue-200' : 'bg-white text-slate-800 border-slate-300'} focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-80" />
                             <span class="text-[11px] px-2 py-0.5 rounded-full ${isActive ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-600'}">
                                 ${box.items.length} 件
                             </span>
